@@ -53,7 +53,7 @@ export default function Header() {
               About
             </a>
             <a
-              href="#"
+              href="/contribute"
               className="text-sm font-medium transition-colors hover:underline"
               style={{ color: "#0645ad" }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "#0b0080")}
