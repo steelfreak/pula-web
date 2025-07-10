@@ -94,7 +94,7 @@ export const useApiWithStore = () => {
   return {
     // Language store actions
     getLanguages,
-    setSelectedBaseLanguage: languageStore.setSelectedBaseLanguage,
+    setSelectedSourceLanguage: languageStore.setSelectedSourceLanguage,
     setSelectedTargetLanguage1: languageStore.setSelectedTargetLanguage1,
     setSelectedTargetLanguage2: languageStore.setSelectedTargetLanguage2,
     
@@ -105,7 +105,7 @@ export const useApiWithStore = () => {
     
     // State from stores
     languages: languageStore.languages,
-    selectedBaseLanguage: languageStore.selectedBaseLanguage,
+    selectedSourceLanguage: languageStore.selectedSourceLanguage,
     selectedTargetLanguage1: languageStore.selectedTargetLanguage1,
     selectedTargetLanguage2: languageStore.selectedTargetLanguage2,
     languageLoading: languageStore.loading,

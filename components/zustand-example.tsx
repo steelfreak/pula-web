@@ -12,13 +12,13 @@ export const ZustandExample = () => {
   const {
     // Language store
     languages,
-    selectedBaseLanguage,
+    selectedSourceLanguage,
     selectedTargetLanguage1,
     selectedTargetLanguage2,
     languageLoading,
     languageError,
     getLanguages,
-    setSelectedBaseLanguage,
+    setSelectedSourceLanguage,
     setSelectedTargetLanguage1,
     setSelectedTargetLanguage2,
     
@@ -42,17 +42,17 @@ export const ZustandExample = () => {
   }, [getLanguages]);
 
   const handleSearch = () => {
-    if (!selectedBaseLanguage || !query.trim()) return;
+    if (!selectedSourceLanguage || !query.trim()) return;
     
     searchLexemes({
       ismatch: 0,
       search: query,
-      src_lang: selectedBaseLanguage.lang_code,
+      src_lang: selectedSourceLanguage.lang_code,
     });
   };
 
   const handleGetDetails = (lexemeId: string) => {
-    if (!selectedBaseLanguage || !selectedTargetLanguage1 || !selectedTargetLanguage2) {
+    if (!selectedSourceLanguage || !selectedTargetLanguage1 || !selectedTargetLanguage2) {
       alert('Please select all required languages');
       return;
     }
@@ -61,7 +61,7 @@ export const ZustandExample = () => {
       id: lexemeId,
       lang_1: selectedTargetLanguage1.lang_code,
       lang_2: selectedTargetLanguage2.lang_code,
-      src_lang: selectedBaseLanguage.lang_code,
+      src_lang: selectedSourceLanguage.lang_code,
     });
   };
 
@@ -91,10 +91,10 @@ export const ZustandExample = () => {
               <div>
                 <label className="block text-sm font-medium mb-2">Base Language</label>
                 <Select
-                  value={selectedBaseLanguage?.lang_code || ''}
+                  value={selectedSourceLanguage?.lang_code || ''}
                   onValueChange={(value) => {
                     const language = languages.find(lang => lang.lang_code === value);
-                    setSelectedBaseLanguage(language || null);
+                    setSelectedSourceLanguage(language || null);
                   }}
                 >
                   <SelectTrigger>
@@ -172,7 +172,7 @@ export const ZustandExample = () => {
               />
               <Button 
                 onClick={handleSearch} 
-                disabled={lexemeLoading || !selectedBaseLanguage || !query.trim()}
+                disabled={lexemeLoading || !selectedSourceLanguage || !query.trim()}
               >
                 {lexemeLoading ? 'Searching...' : 'Search'}
               </Button>
@@ -255,7 +255,7 @@ export const ZustandExample = () => {
                 <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto">
                   {JSON.stringify({
                     languagesCount: languages.length,
-                    selectedBaseLanguage: selectedBaseLanguage?.lang_label,
+                    selectedSourceLanguage: selectedSourceLanguage?.lang_label,
                     selectedTargetLanguage1: selectedTargetLanguage1?.lang_label,
                     selectedTargetLanguage2: selectedTargetLanguage2?.lang_label,
                     loading: languageLoading,

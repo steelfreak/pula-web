@@ -122,13 +122,13 @@ function MyComponent() {
   const {
     // Language store
     languages,
-    selectedBaseLanguage,
+    selectedSourceLanguage,
     selectedTargetLanguage1,
     selectedTargetLanguage2,
     languageLoading,
     languageError,
     getLanguages,
-    setSelectedBaseLanguage,
+    setSelectedSourceLanguage,
     
     // Lexeme store
     lexemes,
@@ -146,12 +146,12 @@ function MyComponent() {
   }, [getLanguages]);
 
   const handleSearch = () => {
-    if (!selectedBaseLanguage) return;
+    if (!selectedSourceLanguage) return;
     
     searchLexemes({
       ismatch: 0,
       search: query,
-      src_lang: selectedBaseLanguage.lang_code,
+      src_lang: selectedSourceLanguage.lang_code,
     });
   };
 
@@ -173,11 +173,11 @@ function MyComponent() {
   const lexemeStore = useLexemeStore();
 
   // Access state
-  const { languages, selectedBaseLanguage } = languageStore;
+  const { languages, selectedSourceLanguage } = languageStore;
   const { lexemes, query } = lexemeStore;
 
   // Update state
-  languageStore.setSelectedBaseLanguage(someLanguage);
+  languageStore.setSelectedSourceLanguage(someLanguage);
   lexemeStore.setQuery("new query");
 
   return (
@@ -197,7 +197,7 @@ Manages language-related state:
 ```typescript
 interface LanguageState {
   languages: Language[];
-  selectedBaseLanguage: Language | null;
+  selectedSourceLanguage: Language | null;
   selectedTargetLanguage1: Language | null;
   selectedTargetLanguage2: Language | null;
   loading: boolean;
@@ -205,7 +205,7 @@ interface LanguageState {
   
   // Actions
   setLanguages: (languages: Language[]) => void;
-  setSelectedBaseLanguage: (language: Language | null) => void;
+  setSelectedSourceLanguage: (language: Language | null) => void;
   setSelectedTargetLanguage1: (language: Language | null) => void;
   setSelectedTargetLanguage2: (language: Language | null) => void;
   setLoading: (loading: boolean) => void;

@@ -9,13 +9,14 @@ import { useApiWithStore } from "@/hooks/useApiWithStore"
 
 export default function SearchInterface() {
   const [sourceLanguage, setSourceLanguage] = useState("")
-  const [targetLanguage, setTargetLanguage] = useState("")
+  const [targetLanguage1, setTargetLanguage1] = useState("")
+  const [targetLanguage2, setTargetLanguage2] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
   const { toast } = useToast()
   const { getLanguages, languageLoading, languageError } = useApiWithStore()
 
-  const areLanguagesSelected = sourceLanguage !== "" && targetLanguage !== ""
+  const areLanguagesSelected = sourceLanguage !== "" && (targetLanguage1 !== "" || targetLanguage2 !== "")
 
   // Load languages when component mounts
   useEffect(() => {
@@ -26,7 +27,7 @@ export default function SearchInterface() {
     if (!areLanguagesSelected) {
       toast({
         title: "Languages required",
-        description: "You must select source and destination language first.",
+        description: "You must select a source language and at least one target language first.",
         variant: "destructive",
       })
       return
@@ -38,7 +39,7 @@ export default function SearchInterface() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Page Title */}
       <div className="text-center mb-12">
         <h1 className="text-3xl font-normal mb-4" style={{ color: "#222222" }}>
@@ -51,7 +52,7 @@ export default function SearchInterface() {
 
       {/* Language Selection */}
       <div className="mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: "#222222" }}>
               Source Language
@@ -60,9 +61,15 @@ export default function SearchInterface() {
           </div>
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: "#222222" }}>
-              Target Language
+              Target Language 1
             </label>
-            <LanguageSelect value={targetLanguage} onChange={setTargetLanguage} placeholder="Select target language" />
+            <LanguageSelect value={targetLanguage1} onChange={setTargetLanguage1} placeholder="Select target language 1" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: "#222222" }}>
+              Target Language 2
+            </label>
+            <LanguageSelect value={targetLanguage2} onChange={setTargetLanguage2} placeholder="Select target language 2" />
           </div>
         </div>
       </div>
@@ -86,7 +93,9 @@ export default function SearchInterface() {
             borderColor: "#a2a9b1",
           }}
         >
-          <p style={{ color: "#72777d" }}>Please select source and target languages to enable search</p>
+          <p style={{ color: "#72777d" }}>
+            Please select a source language and at least one target language to enable search
+          </p>
         </div>
       )}
 
