@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { api } from '@/lib/api';
+import { useToast } from '@/components/ui/use-toast';
 import {
   Language,
   LexemeSearchRequest,
@@ -16,6 +17,7 @@ interface ApiState<T> {
 }
 
 export const useApi = () => {
+  const { toast } = useToast();
   const [languagesState, setLanguagesState] = useState<ApiState<Language[]>>({
     data: null,
     loading: false,
@@ -43,9 +45,17 @@ export const useApi = () => {
     } catch (error) {
       const apiError = error as ApiError;
       setLanguagesState({ data: null, loading: false, error: apiError });
+      
+      // Show toast notification for error
+      toast({
+        title: "Error loading languages",
+        description: apiError.message,
+        variant: "destructive",
+      });
+      
       throw apiError;
     }
-  }, []);
+  }, [toast]);
 
   const searchLexemes = useCallback(async (request: LexemeSearchRequest) => {
     setSearchState(prev => ({ ...prev, loading: true, error: null }));
@@ -56,9 +66,17 @@ export const useApi = () => {
     } catch (error) {
       const apiError = error as ApiError;
       setSearchState({ data: null, loading: false, error: apiError });
+      
+      // Show toast notification for error
+      toast({
+        title: "Error searching lexemes",
+        description: apiError.message,
+        variant: "destructive",
+      });
+      
       throw apiError;
     }
-  }, []);
+  }, [toast]);
 
   const getLexemeDetails = useCallback(async (request: LexemeDetailRequest) => {
     setDetailsState(prev => ({ ...prev, loading: true, error: null }));
@@ -69,9 +87,17 @@ export const useApi = () => {
     } catch (error) {
       const apiError = error as ApiError;
       setDetailsState({ data: null, loading: false, error: apiError });
+      
+      // Show toast notification for error
+      toast({
+        title: "Error loading lexeme details",
+        description: apiError.message,
+        variant: "destructive",
+      });
+      
       throw apiError;
     }
-  }, []);
+  }, [toast]);
 
   return {
     // Languages

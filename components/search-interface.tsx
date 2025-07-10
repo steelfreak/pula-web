@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import LanguageSelect from "@/components/language-select"
 import SearchInput from "@/components/search-input"
 import { useToast } from "@/components/ui/use-toast"
+import { useApiWithStore } from "@/hooks/useApiWithStore"
 
 export default function SearchInterface() {
   const [sourceLanguage, setSourceLanguage] = useState("")
@@ -12,8 +13,14 @@ export default function SearchInterface() {
   const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
   const { toast } = useToast()
+  const { getLanguages, languageLoading, languageError } = useApiWithStore()
 
   const areLanguagesSelected = sourceLanguage !== "" && targetLanguage !== ""
+
+  // Load languages when component mounts
+  useEffect(() => {
+    getLanguages()
+  }, [])
 
   const handleSearch = (query: string) => {
     if (!areLanguagesSelected) {
@@ -80,6 +87,19 @@ export default function SearchInterface() {
           }}
         >
           <p style={{ color: "#72777d" }}>Please select source and target languages to enable search</p>
+        </div>
+      )}
+
+      {/* Language Loading Error */}
+      {languageError && (
+        <div
+          className="border rounded p-4 text-center"
+          style={{
+            backgroundColor: "#fef2f2",
+            borderColor: "#fecaca",
+          }}
+        >
+          <p style={{ color: "#dc2626" }}>Error loading languages: {languageError}</p>
         </div>
       )}
     </div>

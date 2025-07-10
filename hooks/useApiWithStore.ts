@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { api } from '@/lib/api';
 import { useLanguageStore, useLexemeStore } from '@/lib/stores';
+import { useToast } from '@/components/ui/use-toast';
 import {
   LexemeSearchRequest,
   LexemeDetailRequest,
@@ -10,6 +11,7 @@ import {
 export const useApiWithStore = () => {
   const languageStore = useLanguageStore();
   const lexemeStore = useLexemeStore();
+  const { toast } = useToast();
 
   const getLanguages = useCallback(async () => {
     languageStore.setLoading(true);
@@ -22,11 +24,19 @@ export const useApiWithStore = () => {
     } catch (error) {
       const apiError = error as ApiError;
       languageStore.setError(apiError.message);
+      
+      // Show toast notification for error
+      toast({
+        title: "Error loading languages",
+        description: apiError.message,
+        variant: "destructive",
+      });
+      
       throw apiError;
     } finally {
       languageStore.setLoading(false);
     }
-  }, [languageStore]);
+  }, [languageStore, toast]);
 
   const searchLexemes = useCallback(async (request: LexemeSearchRequest) => {
     lexemeStore.setLoading(true);
@@ -40,11 +50,19 @@ export const useApiWithStore = () => {
     } catch (error) {
       const apiError = error as ApiError;
       lexemeStore.setError(apiError.message);
+      
+      // Show toast notification for error
+      toast({
+        title: "Error searching lexemes",
+        description: apiError.message,
+        variant: "destructive",
+      });
+      
       throw apiError;
     } finally {
       lexemeStore.setLoading(false);
     }
-  }, [lexemeStore]);
+  }, [lexemeStore, toast]);
 
   const getLexemeDetails = useCallback(async (request: LexemeDetailRequest) => {
     lexemeStore.setLoading(true);
@@ -59,11 +77,19 @@ export const useApiWithStore = () => {
     } catch (error) {
       const apiError = error as ApiError;
       lexemeStore.setError(apiError.message);
+      
+      // Show toast notification for error
+      toast({
+        title: "Error loading lexeme details",
+        description: apiError.message,
+        variant: "destructive",
+      });
+      
       throw apiError;
     } finally {
       lexemeStore.setLoading(false);
     }
-  }, [lexemeStore]);
+  }, [lexemeStore, toast]);
 
   return {
     // Language store actions
