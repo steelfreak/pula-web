@@ -9,6 +9,21 @@ interface LexemeDetailResultProps {
   data?: LexemeDetailResult;
   title?: string;
   placeholder?: boolean;
+  lexeme?: {
+    id: string;
+    lexicalCategoryId: string;
+    lexicalCategoryLabel: string;
+    image: string;
+  };
+  glosses?: {
+    gloss: {
+      language: string;
+      value: string;
+      audio?: string;
+      formId: string;
+    };
+    senseId: string;
+  }[];
   placeholderType?: "source" | "target1" | "target2";
 }
 
@@ -17,16 +32,18 @@ export default function LexemeDetailResultComponent({
   title,
   placeholder = false,
   placeholderType = "source",
+  lexeme,
+  glosses,
 }: LexemeDetailResultProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(
     null
   );
 
-  // If no data and not placeholder mode, don't render anything
-  if (!data && !placeholder) {
-    return null;
-  }
+  // If no data, lexeme, glosses and not placeholder mode, don't render anything
+  // if (!data && !lexeme && !glosses && !placeholder) {
+  //   return null;
+  // }
 
   const handleAudioPlay = (audioUrl: string) => {
     if (audioElement) {
@@ -68,9 +85,9 @@ export default function LexemeDetailResultComponent({
       <div className="space-y-4">
         {/* Image */}
         <div className="mb-4">
-          {data?.lexeme.image && (
+          {(data?.lexeme.image || lexeme?.image) && (
             <img
-              src={data?.lexeme.image ? data.lexeme.image : "/no-image.png"}
+              src={(data?.lexeme.image || lexeme?.image) || "/no-image.png"}
               alt="Lexeme"
               className="w-full h-80 object-cover rounded-lg"
               onError={(e) => {
@@ -100,10 +117,10 @@ export default function LexemeDetailResultComponent({
         {/* Lexeme Info */}
         <div>
           <h4 className="text-md font-medium mb-2" style={{ color: "#222222" }}>
-            {data?.lexeme.id || "L123456"}
+            {(data?.lexeme.id || lexeme?.id) || "L123456"}
           </h4>
           <p className="text-sm" style={{ color: "#72777d" }}>
-            Category: {data?.lexeme.lexicalCategoryLabel || "noun"}
+            Category: {(data?.lexeme.lexicalCategoryLabel || lexeme?.lexicalCategoryLabel) || "noun"}
           </p>
         </div>
 
@@ -112,8 +129,8 @@ export default function LexemeDetailResultComponent({
           <h5 className="text-md font-medium" style={{ color: "#222222" }}>
             Definitions:
           </h5>
-          {data?.glosses && data.glosses.length > 0 ? (
-            data.glosses.map((glossWithSense, index) => (
+          {(data?.glosses || glosses) && ((data?.glosses?.length || 0) > 0 || (glosses?.length || 0) > 0) ? (
+            (data?.glosses || glosses || []).map((glossWithSense, index) => (
               <div
                 key={index}
                 className="py-3 rounded-lg"

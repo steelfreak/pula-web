@@ -44,6 +44,7 @@ export default function ResultsPage({
   const [target1LexemeDetails, setTarget1LexemeDetails] = useState<any>(null);
   const [target2LexemeDetails, setTarget2LexemeDetails] = useState<any>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [singleLexemeObj, setSingleLexemeObj] = useState<any>(null);
   const areLanguagesSelected =
     selectedSourceLanguage &&
     (selectedTargetLanguage1 || selectedTargetLanguage2);
@@ -101,7 +102,35 @@ export default function ResultsPage({
     try {
       const details = await getLexemeDetails();
       console.log(">>>> <<<<< details", details);
-      // return
+      const detailObj = details[0];
+      setSingleLexemeObj(detailObj.lexeme);
+      setSourceLexemeDetails(
+        detailObj.glosses.find(
+          (gloss: any) =>
+            gloss.gloss.language === selectedSourceLanguage?.lang_code
+        )
+      );
+      setTarget1LexemeDetails(
+        detailObj.glosses.find(
+          (gloss: any) =>
+            gloss.gloss.language === selectedTargetLanguage1?.lang_code
+        )
+      );
+      setTarget2LexemeDetails(
+        detailObj.glosses.find(
+          (gloss: any) =>
+            gloss.gloss.language === selectedTargetLanguage2?.lang_code
+        )
+      );
+
+      console.log({
+        detailObj,
+        singleLexemeObj,
+        sourceLexemeDetails,
+        target1LexemeDetails,
+        target2LexemeDetails,
+      });
+      return;
 
       // For now, we'll use the first result as source and target details
       if (details && details.length > 0) {
@@ -260,7 +289,11 @@ export default function ResultsPage({
                     <p style={{ color: "#72777d" }}>Loading details...</p>
                   </div>
                 ) : sourceLexemeDetails ? (
-                  <LexemeDetailResultComponent data={sourceLexemeDetails} />
+                  <LexemeDetailResultComponent
+                    data={sourceLexemeDetails}
+                    lexeme={singleLexemeObj}
+                    glosses={sourceLexemeDetails}
+                  />
                 ) : (
                   <LexemeDetailResultComponent
                     placeholder={true}
@@ -305,6 +338,8 @@ export default function ResultsPage({
                       {target1LexemeDetails ? (
                         <LexemeDetailResultComponent
                           data={target1LexemeDetails}
+                          // lexeme={singleLexemeObj}
+                          glosses={target1LexemeDetails}
                         />
                       ) : (
                         <LexemeDetailResultComponent
@@ -318,6 +353,8 @@ export default function ResultsPage({
                       {target2LexemeDetails ? (
                         <LexemeDetailResultComponent
                           data={target2LexemeDetails}
+                          // lexeme={singleLexemeObj}
+                          glosses={target2LexemeDetails}
                         />
                       ) : (
                         <LexemeDetailResultComponent
