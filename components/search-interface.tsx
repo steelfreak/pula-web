@@ -43,6 +43,9 @@ export default function SearchInterface() {
     }
 
     if (query) {
+      console.log("query", query);
+      console.log("searchQuery", searchQuery);
+      return;
       router.push(`/results/${encodeURIComponent(query)}`)
     }
   }

@@ -1,24 +1,11 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { Search, X } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
-
-const SUGGESTIONS = [
-  "hello",
-  "world",
-  "translate",
-  "language",
-  "dictionary",
-  "vocabulary",
-  "apple",
-  "banana",
-  "orange",
-  "computer",
-  "internet",
-  "website",
-]
+import { useApiWithStore } from "@/hooks/useApiWithStore"
+import { LexemeSearchResult } from "@/lib/types/api"
 
 interface SearchInputProps {
   disabled?: boolean
@@ -28,26 +15,52 @@ interface SearchInputProps {
 }
 
 export default function SearchInput({ disabled = false, onSearch, value, onChange }: SearchInputProps) {
-  const [suggestions, setSuggestions] = useState<string[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
   const suggestionsRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
+  
+  // Get data from stores
+  const { 
+    searchLexemes, 
+    selectedSourceLanguage, 
+    lexemes, 
+    lexemeLoading 
+  } = useApiWithStore()
 
+  // Debounced search function
+  const debouncedSearch = useCallback(
+    (() => {
+      let timeoutId: NodeJS.Timeout
+      return (query: string) => {
+        clearTimeout(timeoutId)
+        timeoutId = setTimeout(() => {
+          if (query.trim() && selectedSourceLanguage) {
+            searchLexemes({
+              ismatch: 0,
+              search: query,
+              src_lang: selectedSourceLanguage.lang_code
+            }).catch(() => {
+              // Error handling is done in the hook
+            })
+          }
+        }, 300) // 300ms delay
+      }
+    })(),
+    [searchLexemes, selectedSourceLanguage]
+  )
+
+  // Trigger search when value changes
   useEffect(() => {
     if (value.trim() === "") {
-      setSuggestions([])
+      setShowSuggestions(false)
       return
     }
-
-    const filteredSuggestions = SUGGESTIONS.filter((item) => item.toLowerCase().includes(value.toLowerCase())).slice(
-      0,
-      5,
-    )
-
-    setSuggestions(filteredSuggestions)
-  }, [value])
+    
+    debouncedSearch(value)
+    setShowSuggestions(true)
+  }, [value, debouncedSearch])
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -85,12 +98,12 @@ export default function SearchInput({ disabled = false, onSearch, value, onChang
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (disabled) return
-    if (!showSuggestions || suggestions.length === 0) return
+    if (!showSuggestions || lexemes.length === 0) return
 
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault()
-        setSelectedIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : prev))
+        setSelectedIndex((prev) => (prev < lexemes.length - 1 ? prev + 1 : prev))
         break
       case "ArrowUp":
         e.preventDefault()
@@ -99,7 +112,7 @@ export default function SearchInput({ disabled = false, onSearch, value, onChang
       case "Enter":
         e.preventDefault()
         if (selectedIndex >= 0) {
-          handleSuggestionSelect(suggestions[selectedIndex])
+          handleSuggestionSelect(lexemes[selectedIndex])
         } else {
           handleSearch()
         }
@@ -111,11 +124,11 @@ export default function SearchInput({ disabled = false, onSearch, value, onChang
     }
   }
 
-  const handleSuggestionSelect = (suggestion: string) => {
-    onChange(suggestion)
+  const handleSuggestionSelect = (suggestion: LexemeSearchResult) => {
+    onChange(suggestion.label)
     setShowSuggestions(false)
     setSelectedIndex(-1)
-    onSearch(suggestion)
+    onSearch(suggestion.label)
   }
 
   const handleSearch = () => {
@@ -166,17 +179,22 @@ export default function SearchInput({ disabled = false, onSearch, value, onChang
         )}
       </div>
 
-      {!disabled && showSuggestions && suggestions.length > 0 && (
+      {!disabled && showSuggestions && lexemes.length > 0 && (
         <div
           ref={suggestionsRef}
           className="absolute z-20 w-full mt-1 bg-white rounded-lg shadow-lg max-h-60 overflow-auto"
           style={{ border: `1px solid #a2a9b1` }}
         >
-          {suggestions.map((suggestion, index) => (
+          {lexemeLoading && (
+            <div className="px-4 py-3 text-sm" style={{ color: "#72777d" }}>
+              Searching...
+            </div>
+          )}
+          {!lexemeLoading && lexemes.map((lexeme, index) => (
             <button
-              key={suggestion}
+              key={lexeme.id}
               type="button"
-              onClick={() => handleSuggestionSelect(suggestion)}
+              onClick={() => handleSuggestionSelect(lexeme)}
               className="w-full text-left px-4 py-3 text-sm focus:outline-none flex items-center space-x-3 transition-colors"
               style={{
                 backgroundColor: index === selectedIndex ? "#f8f9fa" : "transparent",
@@ -188,7 +206,12 @@ export default function SearchInput({ disabled = false, onSearch, value, onChang
               }
             >
               <Search className="h-4 w-4" style={{ color: "#72777d" }} />
-              <span>{suggestion}</span>
+              <div className="flex-1">
+                <div className="font-medium">{lexeme.label}</div>
+                <div className="text-xs" style={{ color: "#72777d" }}>
+                  {lexeme.description}
+                </div>
+              </div>
             </button>
           ))}
         </div>
