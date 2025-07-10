@@ -9,6 +9,10 @@ import { EnhancedWordListManager } from "@/components/contribution/enhanced-word
 import { RecordingInterface } from "@/components/contribution/recording-interface"
 import { ReviewInterface } from "@/components/contribution/review-interface"
 import { LanguageSelection } from "@/components/contribution/language-selection"
+import Header from "@/components/header"
+import Footer from "@/components/footer"
+import { Toaster } from "@/components/ui/toaster"
+
 
 // Updated steps without Hardware Check
 const steps = [
@@ -183,6 +187,7 @@ export default function ContributePage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */ }
+      <Header />
       <header className="border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold">Contribute to Lexemes</h1>
@@ -263,6 +268,8 @@ export default function ContributePage() {
         onClose={ () => setIsWikimediaModalOpen(false) }
         onSave={ handleWikimediaModalSave }
       />
+      <Footer />
+      <Toaster />
     </div>
   )
 }
