@@ -9,21 +9,33 @@ import {
 } from '@/lib/types/api';
 
 export const useApiWithStore = () => {
-  const languageStore = useLanguageStore();
-  const lexemeStore = useLexemeStore();
   const { toast } = useToast();
+  
+  // Use individual selectors to avoid object recreation
+  const setLanguages = useLanguageStore(state => state.setLanguages);
+  const setSelectedSourceLanguage = useLanguageStore(state => state.setSelectedSourceLanguage);
+  const setSelectedTargetLanguage1 = useLanguageStore(state => state.setSelectedTargetLanguage1);
+  const setSelectedTargetLanguage2 = useLanguageStore(state => state.setSelectedTargetLanguage2);
+  const setLanguageLoading = useLanguageStore(state => state.setLoading);
+  const setLanguageError = useLanguageStore(state => state.setError);
+  
+  const setLexemes = useLexemeStore(state => state.setLexemes);
+  const setQuery = useLexemeStore(state => state.setQuery);
+  const setSelectedLexeme = useLexemeStore(state => state.setSelectedLexeme);
+  const setLexemeLoading = useLexemeStore(state => state.setLoading);
+  const setLexemeError = useLexemeStore(state => state.setError);
 
   const getLanguages = useCallback(async () => {
-    languageStore.setLoading(true);
-    languageStore.setError(null);
+    setLanguageLoading(true);
+    setLanguageError(null);
     
     try {
       const languages = await api.getLanguages();
-      languageStore.setLanguages(languages);
+      setLanguages(languages);
       return languages;
     } catch (error) {
       const apiError = error as ApiError;
-      languageStore.setError(apiError.message);
+      setLanguageError(apiError.message);
       
       // Show toast notification for error
       toast({
@@ -34,22 +46,22 @@ export const useApiWithStore = () => {
       
       throw apiError;
     } finally {
-      languageStore.setLoading(false);
+      setLanguageLoading(false);
     }
-  }, [languageStore, toast]);
+  }, [setLanguages, setLanguageLoading, setLanguageError, toast]);
 
   const searchLexemes = useCallback(async (request: LexemeSearchRequest) => {
-    lexemeStore.setLoading(true);
-    lexemeStore.setError(null);
-    lexemeStore.setQuery(request.search);
+    setLexemeLoading(true);
+    setLexemeError(null);
+    setQuery(request.search);
     
     try {
       const lexemes = await api.searchLexemes(request);
-      lexemeStore.setLexemes(lexemes);
+      setLexemes(lexemes);
       return lexemes;
     } catch (error) {
       const apiError = error as ApiError;
-      lexemeStore.setError(apiError.message);
+      setLexemeError(apiError.message);
       
       // Show toast notification for error
       toast({
@@ -60,23 +72,23 @@ export const useApiWithStore = () => {
       
       throw apiError;
     } finally {
-      lexemeStore.setLoading(false);
+      setLexemeLoading(false);
     }
-  }, [lexemeStore, toast]);
+  }, [setLexemes, setQuery, setLexemeLoading, setLexemeError, toast]);
 
   const getLexemeDetails = useCallback(async (request: LexemeDetailRequest) => {
-    lexemeStore.setLoading(true);
-    lexemeStore.setError(null);
+    setLexemeLoading(true);
+    setLexemeError(null);
     
     try {
       const details = await api.getLexemeDetails(request);
       // Since the API returns an array, we'll take the first result
       const selectedLexeme = details.length > 0 ? details[0] : null;
-      lexemeStore.setSelectedLexeme(selectedLexeme);
+      setSelectedLexeme(selectedLexeme);
       return details;
     } catch (error) {
       const apiError = error as ApiError;
-      lexemeStore.setError(apiError.message);
+      setLexemeError(apiError.message);
       
       // Show toast notification for error
       toast({
@@ -87,38 +99,38 @@ export const useApiWithStore = () => {
       
       throw apiError;
     } finally {
-      lexemeStore.setLoading(false);
+      setLexemeLoading(false);
     }
-  }, [lexemeStore, toast]);
+  }, [setSelectedLexeme, setLexemeLoading, setLexemeError, toast]);
 
   return {
     // Language store actions
     getLanguages,
-    setSelectedSourceLanguage: languageStore.setSelectedSourceLanguage,
-    setSelectedTargetLanguage1: languageStore.setSelectedTargetLanguage1,
-    setSelectedTargetLanguage2: languageStore.setSelectedTargetLanguage2,
+    setSelectedSourceLanguage,
+    setSelectedTargetLanguage1,
+    setSelectedTargetLanguage2,
     
     // Lexeme store actions
     searchLexemes,
     getLexemeDetails,
-    setQuery: lexemeStore.setQuery,
+    setQuery,
     
     // State from stores
-    languages: languageStore.languages,
-    selectedSourceLanguage: languageStore.selectedSourceLanguage,
-    selectedTargetLanguage1: languageStore.selectedTargetLanguage1,
-    selectedTargetLanguage2: languageStore.selectedTargetLanguage2,
-    languageLoading: languageStore.loading,
-    languageError: languageStore.error,
+    languages: useLanguageStore(state => state.languages),
+    selectedSourceLanguage: useLanguageStore(state => state.selectedSourceLanguage),
+    selectedTargetLanguage1: useLanguageStore(state => state.selectedTargetLanguage1),
+    selectedTargetLanguage2: useLanguageStore(state => state.selectedTargetLanguage2),
+    languageLoading: useLanguageStore(state => state.loading),
+    languageError: useLanguageStore(state => state.error),
     
-    lexemes: lexemeStore.lexemes,
-    query: lexemeStore.query,
-    selectedLexeme: lexemeStore.selectedLexeme,
-    lexemeLoading: lexemeStore.loading,
-    lexemeError: lexemeStore.error,
+    lexemes: useLexemeStore(state => state.lexemes),
+    query: useLexemeStore(state => state.query),
+    selectedLexeme: useLexemeStore(state => state.selectedLexeme),
+    lexemeLoading: useLexemeStore(state => state.loading),
+    lexemeError: useLexemeStore(state => state.error),
     
     // Reset functions
-    resetLanguageStore: languageStore.reset,
-    resetLexemeStore: lexemeStore.reset,
+    resetLanguageStore: useLanguageStore(state => state.reset),
+    resetLexemeStore: useLexemeStore(state => state.reset),
   };
 }; 

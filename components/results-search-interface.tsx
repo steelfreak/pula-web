@@ -1,15 +1,18 @@
-"use client"
+'use client';
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import LanguageSelect from "@/components/language-select"
 import SearchInput from "@/components/search-input"
 import { useToast } from "@/components/ui/use-toast"
 import { useApiWithStore } from "@/hooks/useApiWithStore"
 
-export default function SearchInterface() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const router = useRouter()
+interface ResultsSearchInterfaceProps {
+  initialQuery?: string;
+  onSearch: (query: string) => void;
+}
+
+export default function ResultsSearchInterface({ initialQuery = "", onSearch }: ResultsSearchInterfaceProps) {
+  const [searchQuery, setSearchQuery] = useState(initialQuery)
   const { toast } = useToast()
   const { 
     getLanguages, 
@@ -25,12 +28,16 @@ export default function SearchInterface() {
   } = useApiWithStore()
 
   const areLanguagesSelected = selectedSourceLanguage && (selectedTargetLanguage1 || selectedTargetLanguage2)
-  // const areLanguagesSelected = true;
 
   // Load languages when component mounts
   useEffect(() => {
     getLanguages()
-  }, [])
+  }, [getLanguages])
+
+  // Set initial query when prop changes
+  useEffect(() => {
+    setSearchQuery(initialQuery)
+  }, [initialQuery])
 
   const handleSearch = (query: string) => {
     if (!areLanguagesSelected) {
@@ -43,24 +50,14 @@ export default function SearchInterface() {
     }
 
     if (query) {
-      router.push(`/results/${encodeURIComponent(query)}`)
+      onSearch(query)
     }
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      {/* Page Title */}
-      <div className="text-center mb-12">
-        <h1 className="text-3xl font-normal mb-4" style={{ color: "#222222" }}>
-          Easiest way to translate from one language to another
-        </h1>
-        <p className="max-w-2xl mx-auto" style={{ color: "#72777d" }}>
-          Enter a word or phrase to get translations instantly.
-        </p>
-      </div>
-
+    <div className="mb-8">
       {/* Language Selection */}
-      <div className="mb-8">
+      <div className="mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: "#222222" }}>
@@ -105,7 +102,7 @@ export default function SearchInterface() {
       </div>
 
       {/* Search Input */}
-      <div className="mb-8">
+      <div className="mb-6">
         <SearchInput
           disabled={!areLanguagesSelected}
           onSearch={handleSearch}
@@ -143,4 +140,4 @@ export default function SearchInterface() {
       )}
     </div>
   )
-}
+} 

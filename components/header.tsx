@@ -13,22 +13,15 @@ export default function Header() {
           {/* Logo and Title */}
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <div
-                className="w-8 h-8 rounded-sm flex items-center justify-center"
-                style={{ backgroundColor: "#000000" }}
-              >
-                <svg viewBox="0 0 24 24" className="w-5 h-5 text-white" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                </svg>
-              </div>
-              <div className="text-sm font-medium" style={{ color: "#222222" }}>
-                <div>GOETHE</div>
-                <div className="text-xs">INSTITUT</div>
+              <div className="text-sm font-medium cursor-pointer" style={{ color: "#222222" }}>
+                <a href="/">
+                  <img src="/logo.jpg" alt="Logo" className="h-10" />
+                </a>
               </div>
             </div>
             <div className="hidden sm:block h-6 w-px" style={{ backgroundColor: "#a2a9b1" }} />
             <h1 className="hidden sm:block text-lg font-medium" style={{ color: "#222222" }}>
-              Translation Tool
+              Lexeme Search
             </h1>
           </div>
 
