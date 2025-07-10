@@ -6,9 +6,15 @@ import { Inter } from "next/font/google"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Search Autocomplete",
-  description: "Search with Google-like dropdown suggestions",
-    generator: 'v0.dev'
+  title: "AGPB - African German Phrase Book",
+  description: "Easy translation from any base language to any target language",
+  authors: [{ name: "AGPB", url: "https://github.com/agpb" }],
+  keywords: ["translation", "language", "phrase book", "German", "African"],
+  robots: "index, follow",
+  openGraph: {
+    title: "AGPB - African German Phrase Book",
+    description: "Easy translation from any base language to any target language",
+  }
 }
 
 export default function RootLayout({

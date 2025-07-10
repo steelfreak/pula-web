@@ -7,7 +7,13 @@ This directory contains the API helper implementation for interacting with the l
 - `api.ts` - Main API client using axios
 - `types/api.ts` - TypeScript type definitions
 - `hooks/useApi.ts` - React hook for easy API usage
-- `components/api-example.tsx` - Example component demonstrating usage
+- `hooks/useApiWithStore.ts` - Enhanced React hook with Zustand store integration
+- `stores/` - Zustand stores for state management
+  - `languageStore.ts` - Language state management
+  - `lexemeStore.ts` - Lexeme state management
+  - `index.ts` - Store exports
+- `components/api-example.tsx` - Example component demonstrating basic usage
+- `components/zustand-example.tsx` - Example component demonstrating Zustand store usage
 
 ## Setup
 
@@ -18,7 +24,7 @@ This directory contains the API helper implementation for interacting with the l
 
 2. Install dependencies:
    ```bash
-   npm install axios
+   npm install axios zustand
    ```
 
 ## Usage
@@ -107,6 +113,129 @@ function MyComponent() {
 }
 ```
 
+### Using Zustand Stores (Recommended)
+
+```typescript
+import { useApiWithStore } from '@/hooks/useApiWithStore';
+
+function MyComponent() {
+  const {
+    // Language store
+    languages,
+    selectedBaseLanguage,
+    selectedTargetLanguage1,
+    selectedTargetLanguage2,
+    languageLoading,
+    languageError,
+    getLanguages,
+    setSelectedBaseLanguage,
+    
+    // Lexeme store
+    lexemes,
+    query,
+    selectedLexeme,
+    lexemeLoading,
+    lexemeError,
+    searchLexemes,
+    getLexemeDetails,
+    setQuery,
+  } = useApiWithStore();
+
+  useEffect(() => {
+    getLanguages();
+  }, [getLanguages]);
+
+  const handleSearch = () => {
+    if (!selectedBaseLanguage) return;
+    
+    searchLexemes({
+      ismatch: 0,
+      search: query,
+      src_lang: selectedBaseLanguage.lang_code,
+    });
+  };
+
+  return (
+    <div>
+      {/* Your UI components using the store state */}
+    </div>
+  );
+}
+```
+
+### Direct Store Usage
+
+```typescript
+import { useLanguageStore, useLexemeStore } from '@/lib/stores';
+
+function MyComponent() {
+  const languageStore = useLanguageStore();
+  const lexemeStore = useLexemeStore();
+
+  // Access state
+  const { languages, selectedBaseLanguage } = languageStore;
+  const { lexemes, query } = lexemeStore;
+
+  // Update state
+  languageStore.setSelectedBaseLanguage(someLanguage);
+  lexemeStore.setQuery("new query");
+
+  return (
+    <div>
+      {/* Your UI components */}
+    </div>
+  );
+}
+```
+
+## Zustand Stores
+
+### Language Store (`useLanguageStore`)
+
+Manages language-related state:
+
+```typescript
+interface LanguageState {
+  languages: Language[];
+  selectedBaseLanguage: Language | null;
+  selectedTargetLanguage1: Language | null;
+  selectedTargetLanguage2: Language | null;
+  loading: boolean;
+  error: string | null;
+  
+  // Actions
+  setLanguages: (languages: Language[]) => void;
+  setSelectedBaseLanguage: (language: Language | null) => void;
+  setSelectedTargetLanguage1: (language: Language | null) => void;
+  setSelectedTargetLanguage2: (language: Language | null) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
+  reset: () => void;
+}
+```
+
+### Lexeme Store (`useLexemeStore`)
+
+Manages lexeme-related state:
+
+```typescript
+interface LexemeState {
+  lexemes: LexemeSearchResult[];
+  query: string;
+  selectedLexeme: LexemeDetailResult | null;
+  loading: boolean;
+  error: string | null;
+  
+  // Actions
+  setLexemes: (lexemes: LexemeSearchResult[]) => void;
+  setQuery: (query: string) => void;
+  setSelectedLexeme: (lexeme: LexemeDetailResult | null) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
+  reset: () => void;
+}
+```
+
 ## API Endpoints
 
 ### 1. GET /languages
@@ -190,6 +319,16 @@ interface ApiError {
 
 The API client includes automatic error handling and response interceptors to provide consistent error messages.
 
-## Example Component
+## Example Components
 
-See `components/api-example.tsx` for a complete example of how to use the API helper in a React component with loading states, error handling, and user interactions. 
+- `components/api-example.tsx` - Basic API usage example
+- `components/zustand-example.tsx` - Complete Zustand store integration example with full UI
+
+## Benefits of Using Zustand Stores
+
+1. **Global State Management**: State persists across component unmounts
+2. **Automatic Updates**: Components automatically re-render when store state changes
+3. **Type Safety**: Full TypeScript support for all state and actions
+4. **Performance**: Only components that use specific store slices re-render
+5. **Developer Experience**: Easy debugging with store state inspection
+6. **Separation of Concerns**: API logic separated from UI state management 
