@@ -10,6 +10,8 @@ import LexemeDetailResultComponent from "@/components/lexeme-detail-result";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApiWithStore } from "@/hooks/useApiWithStore";
 import { useToast } from "@/components/ui/use-toast";
+import SearchInput from "@/components/search-input";
+import LanguageSelect from "@/components/language-select";
 
 export default function ResultsPage({
   params,
@@ -30,15 +32,25 @@ export default function ResultsPage({
     selectedSourceLanguage,
     selectedTargetLanguage1,
     selectedTargetLanguage2,
+    clickedLexeme,
+    languages,
+    setSelectedSourceLanguage,
+    setSelectedTargetLanguage1,
+    setSelectedTargetLanguage2,
   } = useApiWithStore();
 
   const [sourceLexemeDetails, setSourceLexemeDetails] = useState<any>(null);
   const [target1LexemeDetails, setTarget1LexemeDetails] = useState<any>(null);
   const [target2LexemeDetails, setTarget2LexemeDetails] = useState<any>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const areLanguagesSelected =
+    selectedSourceLanguage &&
+    (selectedTargetLanguage1 || selectedTargetLanguage2);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = useCallback(
     async (searchQuery: string) => {
+      return;
       if (!selectedSourceLanguage) return;
 
       try {
@@ -51,70 +63,71 @@ export default function ResultsPage({
         console.error("Search failed:", error);
       }
     },
-    [selectedSourceLanguage?.lang_code, searchLexemes]
+    [selectedSourceLanguage?.lang_code]
   );
 
   // Search for lexemes when component mounts or query changes
+  // useEffect(() => {
+  //   if (query && selectedSourceLanguage?.lang_code) {
+  //     console.log(">>>> query", query);
+  //     handleSearch(query);
+  //   }
+  // }, [query, selectedSourceLanguage?.lang_code]);
+
   useEffect(() => {
-    if (query && selectedSourceLanguage?.lang_code) {
-      handleSearch(query);
+    console.log("clickedLexeme", clickedLexeme);
+    if (clickedLexeme && clickedLexeme.id) {
+      router.push(`/results/${encodeURIComponent(clickedLexeme.id)}`);
+      handleGetLexemeDetails();
     }
-  }, [query, selectedSourceLanguage?.lang_code, handleSearch]);
+  }, [clickedLexeme]);
 
-  const handleGetLexemeDetails = useCallback(
-    async (lexemeId: string) => {
-      if (
-        !selectedSourceLanguage ||
-        (!selectedTargetLanguage1 && !selectedTargetLanguage2)
-      ) {
-        toast({
-          title: "Languages required",
-          description:
-            "Please select source and target languages to get details.",
-          variant: "destructive",
-        });
-        return;
-      }
+  const handleGetLexemeDetails = useCallback(async () => {
+    if (
+      !selectedSourceLanguage ||
+      (!selectedTargetLanguage1 && !selectedTargetLanguage2)
+    ) {
+      toast({
+        title: "Languages required",
+        description:
+          "Please select source and target languages to get details.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-      setIsLoadingDetails(true);
-      try {
-        const details = await getLexemeDetails({
-          id: lexemeId,
-          lang_1: selectedTargetLanguage1?.lang_code || "",
-          lang_2: selectedTargetLanguage2?.lang_code || "",
-          src_lang: selectedSourceLanguage.lang_code,
-        });
+    setIsLoadingDetails(true);
+    try {
+      const details = await getLexemeDetails();
 
-        // For now, we'll use the first result as source and target details
-        if (details && details.length > 0) {
-          setSourceLexemeDetails(details[0]);
-          if (details.length > 1) {
-            setTarget1LexemeDetails(details[1]);
-          }
-          if (details.length > 2) {
-            setTarget2LexemeDetails(details[2]);
-          }
+      // For now, we'll use the first result as source and target details
+      if (details && details.length > 0) {
+        setSourceLexemeDetails(details[0]);
+        if (details.length > 1) {
+          setTarget1LexemeDetails(details[1]);
         }
-      } catch (error) {
-        console.error("Failed to get lexeme details:", error);
-      } finally {
-        setIsLoadingDetails(false);
+        if (details.length > 2) {
+          setTarget2LexemeDetails(details[2]);
+        }
       }
-    },
-    [
-      selectedSourceLanguage?.lang_code,
-      selectedTargetLanguage1?.lang_code,
-      selectedTargetLanguage2?.lang_code,
-      getLexemeDetails,
-    ]
-  );
+    } catch (error) {
+      console.error("Failed to get lexeme details:", error);
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  }, [
+    selectedSourceLanguage?.lang_code,
+    selectedTargetLanguage1?.lang_code,
+    selectedTargetLanguage2?.lang_code,
+    getLexemeDetails,
+  ]);
 
   // Auto-select first lexeme if available
-  useEffect(() => {
-    if (lexemes && lexemes.length > 0 && !sourceLexemeDetails) {
-      handleGetLexemeDetails(lexemes[0].id);
-    }
-  }, [lexemes, sourceLexemeDetails, handleGetLexemeDetails]);
+  // useEffect(() => {
+  //   if (lexemes && lexemes.length > 0 && !sourceLexemeDetails) {
+  //     handleGetLexemeDetails(lexemes[0].id);
+  //   }
+  // }, [lexemes, sourceLexemeDetails, handleGetLexemeDetails]);
 
   return (
     <div
@@ -138,10 +151,57 @@ export default function ResultsPage({
           </div>
 
           {/* Search Interface */}
-          <ResultsSearchInterface
+          {/* <ResultsSearchInterface
             initialQuery={query}
             onSearch={handleSearch}
-          />
+          /> */}
+
+          <div className="mb-8">
+            <div className="mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <LanguageSelect
+                  value={selectedSourceLanguage?.lang_code || ""}
+                  onChange={(langCode) => {
+                    const language = languages.find(
+                      (lang) => lang.lang_code === langCode
+                    );
+                    setSelectedSourceLanguage(language || null);
+                  }}
+                  placeholder="Select source language"
+                  label="Source Language"
+                />
+                <LanguageSelect
+                  value={selectedTargetLanguage1?.lang_code || ""}
+                  onChange={(langCode) => {
+                    const language = languages.find(
+                      (lang) => lang.lang_code === langCode
+                    );
+                    setSelectedTargetLanguage1(language || null);
+                  }}
+                  placeholder="Select target language 1"
+                  label="Target Language 1"
+                />
+                <LanguageSelect
+                  value={selectedTargetLanguage2?.lang_code || ""}
+                  onChange={(langCode) => {
+                    const language = languages.find(
+                      (lang) => lang.lang_code === langCode
+                    );
+                    setSelectedTargetLanguage2(language || null);
+                  }}
+                  placeholder="Select target language 2"
+                  label="Target Language 2"
+                />
+              </div>
+            </div>
+
+            <SearchInput
+              disabled={!areLanguagesSelected}
+              onSearch={handleSearch}
+              value={searchQuery}
+              onChange={setSearchQuery}
+            />
+          </div>
 
           {/* Results Section */}
           {/* {lexemes && lexemes.length > 0 && (

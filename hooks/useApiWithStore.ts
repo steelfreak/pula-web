@@ -22,6 +22,7 @@ export const useApiWithStore = () => {
   const setLexemes = useLexemeStore(state => state.setLexemes);
   const setQuery = useLexemeStore(state => state.setQuery);
   const setSelectedLexeme = useLexemeStore(state => state.setSelectedLexeme);
+  const setClickedLexeme = useLexemeStore(state => state.setClickedLexeme);
   const setLexemeLoading = useLexemeStore(state => state.setLoading);
   const setLexemeError = useLexemeStore(state => state.setError);
 
@@ -76,9 +77,25 @@ export const useApiWithStore = () => {
     }
   }, [setLexemes, setQuery, setLexemeLoading, setLexemeError, toast]);
 
-  const getLexemeDetails = useCallback(async (request: LexemeDetailRequest) => {
+  const getLexemeDetails = useCallback(async () => {
     setLexemeLoading(true);
     setLexemeError(null);
+
+    // Get required parameters from stores
+    const clickedLexeme = useLexemeStore.getState().clickedLexeme;
+    const selectedSourceLanguage = useLanguageStore.getState().selectedSourceLanguage;
+    const selectedTargetLanguage1 = useLanguageStore.getState().selectedTargetLanguage1;
+    const selectedTargetLanguage2 = useLanguageStore.getState().selectedTargetLanguage2;
+
+    let request: LexemeDetailRequest = {
+        id: clickedLexeme?.id || "",
+        src_lang: selectedSourceLanguage?.lang_code || "",
+        lang_1: selectedTargetLanguage1?.lang_code || "",
+        lang_2: selectedTargetLanguage2?.lang_code || ""
+    }
+    
+    // Construct request parameters
+    
     
     try {
       const details = await api.getLexemeDetails(request);
@@ -114,6 +131,7 @@ export const useApiWithStore = () => {
     searchLexemes,
     getLexemeDetails,
     setQuery,
+    setClickedLexeme,
     
     // State from stores
     languages: useLanguageStore(state => state.languages),
@@ -126,6 +144,7 @@ export const useApiWithStore = () => {
     lexemes: useLexemeStore(state => state.lexemes),
     query: useLexemeStore(state => state.query),
     selectedLexeme: useLexemeStore(state => state.selectedLexeme),
+    clickedLexeme: useLexemeStore(state => state.clickedLexeme),
     lexemeLoading: useLexemeStore(state => state.loading),
     lexemeError: useLexemeStore(state => state.error),
     

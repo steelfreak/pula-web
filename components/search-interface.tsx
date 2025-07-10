@@ -21,7 +21,8 @@ export default function SearchInterface() {
     selectedTargetLanguage2,
     setSelectedSourceLanguage,
     setSelectedTargetLanguage1,
-    setSelectedTargetLanguage2
+    setSelectedTargetLanguage2, 
+    clickedLexeme,
   } = useApiWithStore()
 
   const areLanguagesSelected = selectedSourceLanguage && (selectedTargetLanguage1 || selectedTargetLanguage2)
@@ -31,6 +32,13 @@ export default function SearchInterface() {
   useEffect(() => {
     getLanguages()
   }, [])
+
+  useEffect(() => {
+    console.log("clickedLexeme", clickedLexeme)
+    if (clickedLexeme) {
+      router.push(`/results/${encodeURIComponent(clickedLexeme.id)}`)
+    }
+  }, [clickedLexeme])
 
   const handleSearch = (query: string) => {
     if (!areLanguagesSelected) {
@@ -42,13 +50,16 @@ export default function SearchInterface() {
       return
     }
 
-    if (query) {
-      console.log("query", query);
-      console.log("searchQuery", searchQuery);
-      return;
-      router.push(`/results/${encodeURIComponent(query)}`)
-    }
+    // if (query) {
+      // console.log("query", query);
+      // console.log("searchQuery", searchQuery);
+      // return;
+      // console.log("clickedLexeme", clickedLexeme)
+      // return;
+      // router.push(`/results/${encodeURIComponent(query)}`)
+    // }
   }
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

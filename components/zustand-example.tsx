@@ -57,12 +57,8 @@ export const ZustandExample = () => {
       return;
     }
     
-    getLexemeDetails({
-      id: lexemeId,
-      lang_1: selectedTargetLanguage1.lang_code,
-      lang_2: selectedTargetLanguage2.lang_code,
-      src_lang: selectedSourceLanguage.lang_code,
-    });
+    console.log(">>>>> >>>>> selectedSourceLanguage", selectedSourceLanguage);
+    getLexemeDetails();
   };
 
   return (

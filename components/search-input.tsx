@@ -17,6 +17,7 @@ interface SearchInputProps {
 export default function SearchInput({ disabled = false, onSearch, value, onChange }: SearchInputProps) {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(-1)
+  const [searchQuery, setSearchQuery] = useState(value)
   const inputRef = useRef<HTMLInputElement>(null)
   const suggestionsRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
@@ -26,7 +27,8 @@ export default function SearchInput({ disabled = false, onSearch, value, onChang
     searchLexemes, 
     selectedSourceLanguage, 
     lexemes, 
-    lexemeLoading 
+    lexemeLoading,
+    setClickedLexeme
   } = useApiWithStore()
 
   // Debounced search function
@@ -77,8 +79,19 @@ export default function SearchInput({ disabled = false, onSearch, value, onChang
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value)
+  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    // onChange(e.target.value)
+    setSearchQuery(e.target.value)
+    try {
+      await searchLexemes({
+        ismatch: 0,
+        search: e.target.value,
+        src_lang: selectedSourceLanguage?.lang_code || "",
+      });
+    } catch (error) {
+      console.error("Search failed:", error);
+    }
+
     setShowSuggestions(true)
     setSelectedIndex(-1)
   }
@@ -128,6 +141,7 @@ export default function SearchInput({ disabled = false, onSearch, value, onChang
     onChange(suggestion.label)
     setShowSuggestions(false)
     setSelectedIndex(-1)
+    setClickedLexeme(suggestion) // Save the clicked lexeme to the store
     onSearch(suggestion.label)
   }
 
@@ -151,7 +165,7 @@ export default function SearchInput({ disabled = false, onSearch, value, onChang
         <input
           ref={inputRef}
           type="text"
-          value={value}
+          value={searchQuery}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onFocus={handleInputFocus}
