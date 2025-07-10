@@ -1,20 +1,27 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { LexemeDetailResult } from '@/lib/types/api';
-import { Play, Pause } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { LexemeDetailResult } from "@/lib/types/api";
+import { Play, Pause } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface LexemeDetailResultProps {
   data?: LexemeDetailResult;
   title?: string;
   placeholder?: boolean;
-  placeholderType?: 'source' | 'target1' | 'target2';
+  placeholderType?: "source" | "target1" | "target2";
 }
 
-export default function LexemeDetailResultComponent({ data, title, placeholder = false, placeholderType = 'source' }: LexemeDetailResultProps) {
+export default function LexemeDetailResultComponent({
+  data,
+  title,
+  placeholder = false,
+  placeholderType = "source",
+}: LexemeDetailResultProps) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(
+    null
+  );
 
   // If no data and not placeholder mode, don't render anything
   if (!data && !placeholder) {
@@ -27,15 +34,18 @@ export default function LexemeDetailResultComponent({ data, title, placeholder =
     }
 
     const audio = new Audio(audioUrl);
-    audio.addEventListener('ended', () => setIsPlaying(false));
-    audio.addEventListener('error', () => setIsPlaying(false));
-    
-    audio.play().then(() => {
-      setIsPlaying(true);
-      setAudioElement(audio);
-    }).catch(() => {
-      setIsPlaying(false);
-    });
+    audio.addEventListener("ended", () => setIsPlaying(false));
+    audio.addEventListener("error", () => setIsPlaying(false));
+
+    audio
+      .play()
+      .then(() => {
+        setIsPlaying(true);
+        setAudioElement(audio);
+      })
+      .catch(() => {
+        setIsPlaying(false);
+      });
   };
 
   const handleStopAudio = () => {
@@ -54,8 +64,39 @@ export default function LexemeDetailResultComponent({ data, title, placeholder =
           {title}
         </h3>
       )}
-      
+
       <div className="space-y-4">
+        {/* Image */}
+        <div className="mb-4">
+          {data?.lexeme.image && (
+            <img
+              src={data?.lexeme.image ? data.lexeme.image : "/no-image.png"}
+              alt="Lexeme"
+              className="w-full h-80 object-cover rounded-lg"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          )}
+          {/* {data?.lexeme.image ? ( */}
+          {/* <img
+              src={data?.lexeme.image ? data.lexeme.image : "/no-image.png"}
+              alt="Lexeme"
+              className="w-full h-48 object-cover rounded-lg"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            /> */}
+          {/* ) : (
+            <div 
+              className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: "#f8f9fa" }}
+            >
+              <p className="text-gray-500">No image available</p>
+            </div>
+          )} */}
+        </div>
+
         {/* Lexeme Info */}
         <div>
           <h4 className="text-md font-medium mb-2" style={{ color: "#222222" }}>
@@ -66,27 +107,6 @@ export default function LexemeDetailResultComponent({ data, title, placeholder =
           </p>
         </div>
 
-        {/* Image */}
-        <div className="mb-4">
-          {data?.lexeme.image ? (
-            <img
-              src={data.lexeme.image}
-              alt="Lexeme"
-              className="w-full h-48 object-cover rounded-lg"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-          ) : (
-            <div 
-              className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: "#f8f9fa" }}
-            >
-              <p className="text-gray-500">No image available</p>
-            </div>
-          )}
-        </div>
-
         {/* Glosses */}
         <div className="space-y-3">
           <h5 className="text-md font-medium" style={{ color: "#222222" }}>
@@ -94,56 +114,80 @@ export default function LexemeDetailResultComponent({ data, title, placeholder =
           </h5>
           {data?.glosses && data.glosses.length > 0 ? (
             data.glosses.map((glossWithSense, index) => (
-              <div 
-                key={index} 
-                className="p-3 rounded-lg"
-                style={{ backgroundColor: "#f8f9fa", border: "1px solid #e9ecef" }}
+              <div
+                key={index}
+                className="py-3 rounded-lg"
+                // style={{ backgroundColor: "#f8f9fa", border: "1px solid #e9ecef" }}
               >
-                <div className="flex items-start justify-between">
+                <div className="">
                   <div className="flex-1">
-                    <p className="font-medium mb-1" style={{ color: "#222222" }}>
-                      {glossWithSense.gloss.language}: {glossWithSense.gloss.value}
+                    <p
+                      className="font-medium mb-1"
+                      style={{ color: "#222222" }}
+                    >
+                      {glossWithSense.gloss.language}:{" "}
+                      {glossWithSense.gloss.value}
                     </p>
                     <p className="text-xs" style={{ color: "#72777d" }}>
-                      Form ID: {glossWithSense.gloss.formId} | Sense ID: {glossWithSense.senseId}
+                      Form ID: {glossWithSense.gloss.formId} | Sense ID:{" "}
+                      {glossWithSense.senseId}
                     </p>
                   </div>
-                  {glossWithSense.gloss.audio && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        if (isPlaying) {
-                          handleStopAudio();
-                        } else {
-                          handleAudioPlay(glossWithSense.gloss.audio!);
-                        }
-                      }}
-                      className="ml-2 flex-shrink-0"
-                    >
-                      {isPlaying ? (
-                        <Pause className="w-4 h-4" />
-                      ) : (
-                        <Play className="w-4 h-4" />
-                      )}
-                    </Button>
-                  )}
+                  <div className="ml-2 flex-shrink-0">
+                    {glossWithSense.gloss.audio ? (
+                      <audio
+                        controls
+                        className="h-8"
+                        style={{ minWidth: "120px" }}
+                      >
+                        <source
+                          src={glossWithSense.gloss.audio}
+                          type="audio/mpeg"
+                        />
+                        Your browser does not support the audio element.
+                      </audio>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs"
+                        style={{
+                          color: "#0645ad",
+                          borderColor: "#0645ad",
+                          backgroundColor: "transparent",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#f0f8ff";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                        }}
+                      >
+                        Add audio
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))
           ) : (
             // Placeholder glosses
             <>
-              <div 
-                className="p-3 rounded-lg"
-                style={{ backgroundColor: "#f8f9fa", border: "1px solid #e9ecef" }}
+              <div
+                className="py-3 rounded-lg"
+                // style={{ backgroundColor: "#f8f9fa", border: "1px solid #e9ecef" }}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <p className="font-medium mb-1" style={{ color: "#222222" }}>
-                      {placeholderType === 'source' && "en: example definition"}
-                      {placeholderType === 'target1' && "es: definición de ejemplo"}
-                      {placeholderType === 'target2' && "fr: définition d'exemple"}
+                    <p
+                      className="font-medium mb-1"
+                      style={{ color: "#222222" }}
+                    >
+                      {placeholderType === "source" && "en: example definition"}
+                      {placeholderType === "target1" &&
+                        "es: definición de ejemplo"}
+                      {placeholderType === "target2" &&
+                        "fr: définition d'exemple"}
                     </p>
                     <p className="text-xs" style={{ color: "#72777d" }}>
                       Form ID: L123456-F1 | Sense ID: L123456-S1
@@ -152,23 +196,39 @@ export default function LexemeDetailResultComponent({ data, title, placeholder =
                   <Button
                     size="sm"
                     variant="outline"
-                    disabled
-                    className="ml-2 flex-shrink-0"
+                    className="ml-2 flex-shrink-0 text-xs"
+                    style={{
+                      color: "#0645ad",
+                      borderColor: "#0645ad",
+                      backgroundColor: "transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#f0f8ff";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                    }}
                   >
-                    <Play className="w-4 h-4" />
+                    Add audio
                   </Button>
                 </div>
               </div>
-              <div 
-                className="p-3 rounded-lg"
-                style={{ backgroundColor: "#f8f9fa", border: "1px solid #e9ecef" }}
+              <div
+                className="py-3 rounded-lg"
+                // style={{ backgroundColor: "#f8f9fa", border: "1px solid #e9ecef" }}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <p className="font-medium mb-1" style={{ color: "#222222" }}>
-                      {placeholderType === 'source' && "es: definición de ejemplo"}
-                      {placeholderType === 'target1' && "en: example definition"}
-                      {placeholderType === 'target2' && "de: Beispieldefinition"}
+                    <p
+                      className="font-medium mb-1"
+                      style={{ color: "#222222" }}
+                    >
+                      {placeholderType === "source" &&
+                        "es: definición de ejemplo"}
+                      {placeholderType === "target1" &&
+                        "en: example definition"}
+                      {placeholderType === "target2" &&
+                        "de: Beispieldefinition"}
                     </p>
                     <p className="text-xs" style={{ color: "#72777d" }}>
                       Form ID: L123456-F2 | Sense ID: L123456-S2
@@ -177,10 +237,20 @@ export default function LexemeDetailResultComponent({ data, title, placeholder =
                   <Button
                     size="sm"
                     variant="outline"
-                    disabled
-                    className="ml-2 flex-shrink-0"
+                    className="ml-2 flex-shrink-0 text-xs"
+                    style={{
+                      color: "#0645ad",
+                      borderColor: "#0645ad",
+                      backgroundColor: "transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#f0f8ff";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                    }}
                   >
-                    <Play className="w-4 h-4" />
+                    Add audio
                   </Button>
                 </div>
               </div>
@@ -190,4 +260,4 @@ export default function LexemeDetailResultComponent({ data, title, placeholder =
       </div>
     </div>
   );
-} 
+}

@@ -19,7 +19,7 @@ export default function ResultsPage({
   params: Promise<{ query: string }>;
 }) {
   const resolvedParams = use(params);
-  const query = decodeURIComponent(resolvedParams.query);
+  // const query = decodeURIComponent(resolvedParams.query);
   const router = useRouter();
   const { toast } = useToast();
   const {
@@ -37,6 +37,7 @@ export default function ResultsPage({
     setSelectedSourceLanguage,
     setSelectedTargetLanguage1,
     setSelectedTargetLanguage2,
+    query,
   } = useApiWithStore();
 
   const [sourceLexemeDetails, setSourceLexemeDetails] = useState<any>(null);
@@ -46,7 +47,7 @@ export default function ResultsPage({
   const areLanguagesSelected =
     selectedSourceLanguage &&
     (selectedTargetLanguage1 || selectedTargetLanguage2);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(query || "");
 
   const handleSearch = useCallback(
     async (searchQuery: string) => {
@@ -99,6 +100,8 @@ export default function ResultsPage({
     setIsLoadingDetails(true);
     try {
       const details = await getLexemeDetails();
+      console.log(">>>> <<<<< details", details);
+      // return
 
       // For now, we'll use the first result as source and target details
       if (details && details.length > 0) {
@@ -197,7 +200,7 @@ export default function ResultsPage({
 
             <SearchInput
               disabled={!areLanguagesSelected}
-              onSearch={handleSearch}
+              onSearch={(v) => null}
               value={searchQuery}
               onChange={setSearchQuery}
             />

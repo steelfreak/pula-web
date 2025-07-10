@@ -8,7 +8,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { useApiWithStore } from "@/hooks/useApiWithStore"
 
 export default function SearchInterface() {
-  const [searchQuery, setSearchQuery] = useState("")
+  // const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
   const { toast } = useToast()
   const { 
@@ -110,9 +110,11 @@ export default function SearchInterface() {
       <div className="mb-8">
         <SearchInput
           disabled={!areLanguagesSelected}
-          onSearch={handleSearch}
-          value={searchQuery}
-          onChange={setSearchQuery}
+          // onSearch={handleSearch}
+          onSearch={(v) => null}
+          value={""}
+          // onChange={setSearchQuery}
+          onChange={(v) => null}
         />
       </div>
 
