@@ -1,0 +1,57 @@
+// API Response Types
+
+export interface Language {
+  lang_code: string;
+  lang_label: string;
+  lang_wd_id?: string;
+}
+
+export interface LexemeSearchRequest {
+  ismatch: number;
+  search: string;
+  src_lang: string;
+}
+
+export interface LexemeSearchResult {
+  id: string;
+  label: string;
+  language: string;
+  description: string;
+}
+
+export interface LexemeDetailRequest {
+  id: string;
+  lang_1: string;
+  lang_2: string;
+  src_lang: string;
+}
+
+export interface Gloss {
+  language: string;
+  value: string;
+  audio?: string;
+  formId: string;
+}
+
+export interface GlossWithSense {
+  gloss: Gloss;
+  senseId: string;
+}
+
+export interface LexemeDetail {
+  id: string;
+  lexicalCategoryId: string;
+  lexicalCategoryLabel: string;
+  image?: string;
+}
+
+export interface LexemeDetailResult {
+  lexeme: LexemeDetail;
+  glosses: GlossWithSense[];
+}
+
+// API Error Response
+export interface ApiError {
+  message: string;
+  status?: number;
+} 
