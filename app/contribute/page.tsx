@@ -188,7 +188,7 @@ export default function ContributePage() {
     <div className="min-h-screen bg-white">
       {/* Header */ }
       <Header />
-      <header className="border-b border-gray-200 px-6 py-4">
+      {/* <header className="border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold">Contribute to Lexemes</h1>
           <Button variant="ghost" className="text-red-600 hover:text-red-700 hover:bg-red-50">
@@ -196,11 +196,11 @@ export default function ContributePage() {
             Log out
           </Button>
         </div>
-      </header>
+      </header> */}
 
       <div className="flex h-[calc(100vh-73px)]">
         {/* Sidebar */ }
-        <aside className="w-64 bg-gray-50 border-r border-gray-200 p-6">
+        <aside className="w-64 bg-gray-50 border-r border-gray-200 p-6 pt-12">
           <nav className="space-y-2">
             { steps.map((step) => {
               const isCompleted = completedSteps.includes(step.id)
@@ -238,7 +238,7 @@ export default function ContributePage() {
         </aside>
 
         {/* Main content */ }
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 flex flex-col pt-12">
           <div className="flex-1 p-6 overflow-auto">{ renderStepContent() }</div>
 
           {/* Navigation footer */ }

@@ -27,7 +27,8 @@ export default function ResultsSearchInterface({ initialQuery = "", onSearch }: 
     setSelectedTargetLanguage2
   } = useApiWithStore()
 
-  const areLanguagesSelected = selectedSourceLanguage && (selectedTargetLanguage1 || selectedTargetLanguage2)
+  // const areLanguagesSelected = selectedSourceLanguage && (selectedTargetLanguage1 || selectedTargetLanguage2)
+  const areLanguagesSelected = true
 
   // Load languages when component mounts
   useEffect(() => {
@@ -59,45 +60,33 @@ export default function ResultsSearchInterface({ initialQuery = "", onSearch }: 
       {/* Language Selection */}
       <div className="mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: "#222222" }}>
-              Source Language
-            </label>
-            <LanguageSelect 
-              value={selectedSourceLanguage?.lang_code || ""} 
-              onChange={(langCode) => {
-                const language = languages.find(lang => lang.lang_code === langCode);
-                setSelectedSourceLanguage(language || null);
-              }} 
-              placeholder="Select source language" 
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: "#222222" }}>
-              Target Language 1
-            </label>
-            <LanguageSelect 
-              value={selectedTargetLanguage1?.lang_code || ""} 
-              onChange={(langCode) => {
-                const language = languages.find(lang => lang.lang_code === langCode);
-                setSelectedTargetLanguage1(language || null);
-              }} 
-              placeholder="Select target language 1" 
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: "#222222" }}>
-              Target Language 2
-            </label>
-            <LanguageSelect 
-              value={selectedTargetLanguage2?.lang_code || ""} 
-              onChange={(langCode) => {
-                const language = languages.find(lang => lang.lang_code === langCode);
-                setSelectedTargetLanguage2(language || null);
-              }} 
-              placeholder="Select target language 2" 
-            />
-          </div>
+          <LanguageSelect 
+            value={selectedSourceLanguage?.lang_code || ""} 
+            onChange={(langCode) => {
+              const language = languages.find(lang => lang.lang_code === langCode);
+              setSelectedSourceLanguage(language || null);
+            }} 
+            placeholder="Select source language"
+            label="Source Language"
+          />
+          <LanguageSelect 
+            value={selectedTargetLanguage1?.lang_code || ""} 
+            onChange={(langCode) => {
+              const language = languages.find(lang => lang.lang_code === langCode);
+              setSelectedTargetLanguage1(language || null);
+            }} 
+            placeholder="Select target language 1"
+            label="Target Language 1"
+          />
+          <LanguageSelect 
+            value={selectedTargetLanguage2?.lang_code || ""} 
+            onChange={(langCode) => {
+              const language = languages.find(lang => lang.lang_code === langCode);
+              setSelectedTargetLanguage2(language || null);
+            }} 
+            placeholder="Select target language 2"
+            label="Target Language 2"
+          />
         </div>
       </div>
 
@@ -112,7 +101,7 @@ export default function ResultsSearchInterface({ initialQuery = "", onSearch }: 
       </div>
 
       {/* Instructions */}
-      {!areLanguagesSelected && (
+      {/* {!areLanguagesSelected && (
         <div
           className="border rounded p-4 text-center"
           style={{
@@ -121,10 +110,10 @@ export default function ResultsSearchInterface({ initialQuery = "", onSearch }: 
           }}
         >
           <p style={{ color: "#72777d" }}>
-            Please select a source language and at least one target language to enable search
+            Please select a source language and at least one target  
           </p>
         </div>
-      )}
+      )} */}
 
       {/* Language Loading Error */}
       {languageError && (

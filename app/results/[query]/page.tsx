@@ -103,13 +103,13 @@ export default function ResultsPage({ params }: { params: Promise<{ query: strin
       <main className="flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Page Title */}
-          <div className="text-center mb-8">
+          <div className="mb-8">
             <h1 className="text-3xl font-normal mb-4" style={{ color: "#222222" }}>
               Translation Results
             </h1>
-            <p className="max-w-2xl mx-auto" style={{ color: "#72777d" }}>
+            {/* <p className="max-w-2xl" style={{ color: "#72777d" }}>
               Search and compare translations across multiple languages.
-            </p>
+            </p> */}
           </div>
 
           {/* Search Interface */}

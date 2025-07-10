@@ -52,7 +52,7 @@ export default function Header() {
               onMouseEnter={(e) => (e.currentTarget.style.color = "#0b0080")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "#0645ad")}
             >
-              Contribute
+              Record Studio
             </a>
           </nav>
 

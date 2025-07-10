@@ -62,45 +62,33 @@ export default function SearchInterface() {
       {/* Language Selection */}
       <div className="mb-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: "#222222" }}>
-              Source Language
-            </label>
-            <LanguageSelect 
-              value={selectedSourceLanguage?.lang_code || ""} 
-              onChange={(langCode) => {
-                const language = languages.find(lang => lang.lang_code === langCode);
-                setSelectedSourceLanguage(language || null);
-              }} 
-              placeholder="Select source language" 
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: "#222222" }}>
-              Target Language 1
-            </label>
-            <LanguageSelect 
-              value={selectedTargetLanguage1?.lang_code || ""} 
-              onChange={(langCode) => {
-                const language = languages.find(lang => lang.lang_code === langCode);
-                setSelectedTargetLanguage1(language || null);
-              }} 
-              placeholder="Select target language 1" 
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: "#222222" }}>
-              Target Language 2
-            </label>
-            <LanguageSelect 
-              value={selectedTargetLanguage2?.lang_code || ""} 
-              onChange={(langCode) => {
-                const language = languages.find(lang => lang.lang_code === langCode);
-                setSelectedTargetLanguage2(language || null);
-              }} 
-              placeholder="Select target language 2" 
-            />
-          </div>
+          <LanguageSelect 
+            value={selectedSourceLanguage?.lang_code || ""} 
+            onChange={(langCode) => {
+              const language = languages.find(lang => lang.lang_code === langCode);
+              setSelectedSourceLanguage(language || null);
+            }} 
+            placeholder="Select source language"
+            label="Source Language"
+          />
+          <LanguageSelect 
+            value={selectedTargetLanguage1?.lang_code || ""} 
+            onChange={(langCode) => {
+              const language = languages.find(lang => lang.lang_code === langCode);
+              setSelectedTargetLanguage1(language || null);
+            }} 
+            placeholder="Select target language 1"
+            label="Target Language 1"
+          />
+          <LanguageSelect 
+            value={selectedTargetLanguage2?.lang_code || ""} 
+            onChange={(langCode) => {
+              const language = languages.find(lang => lang.lang_code === langCode);
+              setSelectedTargetLanguage2(language || null);
+            }} 
+            placeholder="Select target language 2"
+            label="Target Language 2"
+          />
         </div>
       </div>
 
