@@ -109,9 +109,9 @@ class ApiClient {
   /**
    * Get detailed lexeme information with glosses in multiple languages
    */
-  async getLexemeDetails(request: LexemeDetailRequest): Promise<LexemeDetailResult[]> {
+  async getLexemeDetails(request: LexemeDetailRequest): Promise<LexemeDetailResult> {
     try {
-      const response: AxiosResponse<LexemeDetailResult[]> = await this.client.post(`/lexemes/${request.id}`, request);
+      const response: AxiosResponse<LexemeDetailResult> = await this.client.post(`/lexemes/${request.id}`, request);
       return response.data;
     } catch (error) {
       throw error as ApiError;

@@ -100,7 +100,7 @@ export default function SearchInput({ disabled = false, onSearch, value, onChang
     if (disabled) {
       toast({
         title: "Languages required",
-        description: "You must select source and destination language first.",
+        description: "You must select source and target language first.",
         variant: "destructive",
       })
       inputRef.current?.blur()

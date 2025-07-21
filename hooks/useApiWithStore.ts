@@ -62,12 +62,13 @@ export const useApiWithStore = () => {
       return lexemes;
     } catch (error) {
       const apiError = error as ApiError;
-      setLexemeError(apiError.message);
+      const errorMessage = typeof apiError.message === 'object' ? apiError.message.info : apiError.message;
+      setLexemeError(errorMessage);
       
       // Show toast notification for error
       toast({
         title: "Error searching lexemes",
-        description: apiError.message,
+        description: errorMessage,
         variant: "destructive",
       });
       
@@ -99,9 +100,7 @@ export const useApiWithStore = () => {
     
     try {
       const details = await api.getLexemeDetails(request);
-      // Since the API returns an array, we'll take the first result
-      const selectedLexeme = details.length > 0 ? details[0] : null;
-      setSelectedLexeme(selectedLexeme);
+      setSelectedLexeme(details);
       return details;
     } catch (error) {
       const apiError = error as ApiError;

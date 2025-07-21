@@ -12,6 +12,7 @@ import { useApiWithStore } from "@/hooks/useApiWithStore";
 import { useToast } from "@/components/ui/use-toast";
 import SearchInput from "@/components/search-input";
 import LanguageSelect from "@/components/language-select";
+import { GlossWithSense, LexemeDetailResult } from "@/lib/types/api";
 
 export default function ResultsPage({
   params,
@@ -19,7 +20,7 @@ export default function ResultsPage({
   params: Promise<{ query: string }>;
 }) {
   const resolvedParams = use(params);
-  // const query = decodeURIComponent(resolvedParams.query);
+  const lexemeId = decodeURIComponent(resolvedParams.query);
   const router = useRouter();
   const { toast } = useToast();
   const {
@@ -35,14 +36,21 @@ export default function ResultsPage({
     clickedLexeme,
     languages,
     setSelectedSourceLanguage,
+    getLanguages,
     setSelectedTargetLanguage1,
     setSelectedTargetLanguage2,
     query,
   } = useApiWithStore();
 
-  const [sourceLexemeDetails, setSourceLexemeDetails] = useState<any>(null);
-  const [target1LexemeDetails, setTarget1LexemeDetails] = useState<any>(null);
-  const [target2LexemeDetails, setTarget2LexemeDetails] = useState<any>(null);
+  const [sourceLexemeDetails, setSourceLexemeDetails] = useState<
+    GlossWithSense[]
+  >([]);
+  const [target1LexemeDetails, setTarget1LexemeDetails] = useState<
+    GlossWithSense[]
+  >([]);
+  const [target2LexemeDetails, setTarget2LexemeDetails] = useState<
+    GlossWithSense[]
+  >([]);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [singleLexemeObj, setSingleLexemeObj] = useState<any>(null);
   const areLanguagesSelected =
@@ -50,23 +58,27 @@ export default function ResultsPage({
     (selectedTargetLanguage1 || selectedTargetLanguage2);
   const [searchQuery, setSearchQuery] = useState(query || "");
 
-  const handleSearch = useCallback(
-    async (searchQuery: string) => {
-      return;
-      if (!selectedSourceLanguage) return;
+  // const handleSearch = useCallback(
+  //   async (searchQuery: string) => {
+  //     return;
+  //     if (!selectedSourceLanguage) return;
 
-      try {
-        await searchLexemes({
-          ismatch: 0,
-          search: searchQuery,
-          src_lang: selectedSourceLanguage.lang_code,
-        });
-      } catch (error) {
-        console.error("Search failed:", error);
-      }
-    },
-    [selectedSourceLanguage?.lang_code]
-  );
+  //     try {
+  //       await searchLexemes({
+  //         ismatch: 0,
+  //         search: searchQuery,
+  //         src_lang: selectedSourceLanguage.lang_code,
+  //       });
+  //     } catch (error) {
+  //       console.error("Search failed:", error);
+  //     }
+  //   },
+  //   [selectedSourceLanguage?.lang_code]
+  // );
+
+  useEffect(() => {
+    getLanguages();
+  }, []);
 
   // Search for lexemes when component mounts or query changes
   // useEffect(() => {
@@ -77,12 +89,39 @@ export default function ResultsPage({
   // }, [query, selectedSourceLanguage?.lang_code]);
 
   useEffect(() => {
-    console.log("clickedLexeme", clickedLexeme);
     if (clickedLexeme && clickedLexeme.id) {
-      router.push(`/results/${encodeURIComponent(clickedLexeme.id)}`);
+      if (clickedLexeme.id !== lexemeId) {
+        router.push(`/results/${encodeURIComponent(clickedLexeme.id)}`);
+      }
       handleGetLexemeDetails();
     }
   }, [clickedLexeme]);
+
+  useEffect(() => {
+    if (!selectedLexeme || !selectedLexeme.lexeme || !selectedLexeme.glosses) {
+      return;
+    }
+
+    setSingleLexemeObj(selectedLexeme.lexeme);
+    setSourceLexemeDetails(
+      selectedLexeme.glosses.filter(
+        (gloss: GlossWithSense) =>
+          gloss.gloss.language === selectedSourceLanguage?.lang_code
+      )
+    );
+    setTarget1LexemeDetails(
+      selectedLexeme.glosses.filter(
+        (gloss: GlossWithSense) =>
+          gloss.gloss.language === selectedTargetLanguage1?.lang_code
+      )
+    );
+    setTarget2LexemeDetails(
+      selectedLexeme.glosses.filter(
+        (gloss: GlossWithSense) =>
+          gloss.gloss.language === selectedTargetLanguage2?.lang_code
+      )
+    );
+  }, [selectedLexeme]);
 
   const handleGetLexemeDetails = useCallback(async () => {
     if (
@@ -100,48 +139,7 @@ export default function ResultsPage({
 
     setIsLoadingDetails(true);
     try {
-      const details = await getLexemeDetails();
-      console.log(">>>> <<<<< details", details);
-      const detailObj = details[0];
-      setSingleLexemeObj(detailObj.lexeme);
-      setSourceLexemeDetails(
-        detailObj.glosses.find(
-          (gloss: any) =>
-            gloss.gloss.language === selectedSourceLanguage?.lang_code
-        )
-      );
-      setTarget1LexemeDetails(
-        detailObj.glosses.find(
-          (gloss: any) =>
-            gloss.gloss.language === selectedTargetLanguage1?.lang_code
-        )
-      );
-      setTarget2LexemeDetails(
-        detailObj.glosses.find(
-          (gloss: any) =>
-            gloss.gloss.language === selectedTargetLanguage2?.lang_code
-        )
-      );
-
-      console.log({
-        detailObj,
-        singleLexemeObj,
-        sourceLexemeDetails,
-        target1LexemeDetails,
-        target2LexemeDetails,
-      });
-      return;
-
-      // For now, we'll use the first result as source and target details
-      if (details && details.length > 0) {
-        setSourceLexemeDetails(details[0]);
-        if (details.length > 1) {
-          setTarget1LexemeDetails(details[1]);
-        }
-        if (details.length > 2) {
-          setTarget2LexemeDetails(details[2]);
-        }
-      }
+      await getLexemeDetails();
     } catch (error) {
       console.error("Failed to get lexeme details:", error);
     } finally {
@@ -177,17 +175,9 @@ export default function ResultsPage({
             >
               Translation Results
             </h1>
-            {/* <p className="max-w-2xl" style={{ color: "#72777d" }}>
-              Search and compare translations across multiple languages.
-            </p> */}
           </div>
 
           {/* Search Interface */}
-          {/* <ResultsSearchInterface
-            initialQuery={query}
-            onSearch={handleSearch}
-          /> */}
-
           <div className="mb-8">
             <div className="mb-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -235,37 +225,6 @@ export default function ResultsPage({
             />
           </div>
 
-          {/* Results Section */}
-          {/* {lexemes && lexemes.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-xl font-medium mb-4" style={{ color: "#222222" }}>
-                Search Results for "{query}"
-              </h2>
-              <div className="space-y-2">
-                {lexemes.map((lexeme) => (
-                  <div 
-                    key={lexeme.id}
-                    className="p-3 border rounded cursor-pointer transition-colors"
-                    style={{ 
-                      backgroundColor: "#f8f9fa", 
-                      borderColor: "#a2a9b1",
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#e9ecef"}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#f8f9fa"}
-                    onClick={() => handleGetLexemeDetails(lexeme.id)}
-                  >
-                    <h3 className="font-medium" style={{ color: "#222222" }}>
-                      {lexeme.label}
-                    </h3>
-                    <p className="text-sm" style={{ color: "#72777d" }}>
-                      {lexeme.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )} */}
-
           {/* Translation Details */}
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
             {/* Column 1: Source Language Results */}
@@ -284,22 +243,18 @@ export default function ResultsPage({
                   border: "1px solid #a2a9b1",
                 }}
               >
-                {isLoadingDetails ? (
+                {isLoadingDetails && (
                   <div className="text-center py-8">
                     <p style={{ color: "#72777d" }}>Loading details...</p>
                   </div>
-                ) : sourceLexemeDetails ? (
-                  <LexemeDetailResultComponent
-                    data={sourceLexemeDetails}
-                    lexeme={singleLexemeObj}
-                    glosses={sourceLexemeDetails}
-                  />
-                ) : (
-                  <LexemeDetailResultComponent
-                    placeholder={true}
-                    placeholderType="source"
-                  />
                 )}
+                <LexemeDetailResultComponent
+                  glossesWithSense={sourceLexemeDetails}
+                  lexemeDetail={singleLexemeObj}
+                  title={
+                    selectedSourceLanguage?.lang_label || "Source Language"
+                  }
+                />
               </div>
             </div>
 
@@ -319,52 +274,35 @@ export default function ResultsPage({
                   border: "1px solid #a2a9b1",
                 }}
               >
-                {isLoadingDetails ? (
+                {isLoadingDetails && (
                   <div className="text-center py-8">
                     <p style={{ color: "#72777d" }}>Loading details...</p>
                   </div>
-                ) : (
-                  <Tabs defaultValue="target1" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="target1">
-                        {selectedTargetLanguage1?.lang_label || "Target 1"}
-                      </TabsTrigger>
-                      <TabsTrigger value="target2">
-                        {selectedTargetLanguage2?.lang_label || "Target 2"}
-                      </TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="target1" className="mt-4">
-                      {target1LexemeDetails ? (
-                        <LexemeDetailResultComponent
-                          data={target1LexemeDetails}
-                          // lexeme={singleLexemeObj}
-                          glosses={target1LexemeDetails}
-                        />
-                      ) : (
-                        <LexemeDetailResultComponent
-                          placeholder={true}
-                          placeholderType="target1"
-                        />
-                      )}
-                    </TabsContent>
-
-                    <TabsContent value="target2" className="mt-4">
-                      {target2LexemeDetails ? (
-                        <LexemeDetailResultComponent
-                          data={target2LexemeDetails}
-                          // lexeme={singleLexemeObj}
-                          glosses={target2LexemeDetails}
-                        />
-                      ) : (
-                        <LexemeDetailResultComponent
-                          placeholder={true}
-                          placeholderType="target2"
-                        />
-                      )}
-                    </TabsContent>
-                  </Tabs>
                 )}
+                <Tabs defaultValue="target1" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="target1">
+                      {selectedTargetLanguage1?.lang_label || "Target 1"}
+                    </TabsTrigger>
+                    <TabsTrigger value="target2">
+                      {selectedTargetLanguage2?.lang_label || "Target 2"}
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="target1" className="mt-4">
+                    <LexemeDetailResultComponent
+                      glossesWithSense={target1LexemeDetails}
+                      title={selectedTargetLanguage1?.lang_label || "Target 1"}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="target2" className="mt-4">
+                    <LexemeDetailResultComponent
+                      glossesWithSense={target2LexemeDetails}
+                      title={selectedTargetLanguage2?.lang_label || "Target 2"}
+                    />
+                  </TabsContent>
+                </Tabs>
               </div>
             </div>
           </div>
