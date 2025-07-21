@@ -12,7 +12,8 @@ import { useApiWithStore } from "@/hooks/useApiWithStore";
 import { useToast } from "@/components/ui/use-toast";
 import SearchInput from "@/components/search-input";
 import LanguageSelect from "@/components/language-select";
-import { GlossWithSense, LexemeDetailResult } from "@/lib/types/api";
+import { GlossWithSense, Language, LexemeDetailResult } from "@/lib/types/api";
+import ContributeModal from "@/components/contribute-modal";
 
 export default function ResultsPage({
   params,
@@ -57,6 +58,8 @@ export default function ResultsPage({
     selectedSourceLanguage &&
     (selectedTargetLanguage1 || selectedTargetLanguage2);
   const [searchQuery, setSearchQuery] = useState(query || "");
+  const [open, setOpen] = useState(false);
+  const [contributingLanguage, setContributingLanguage] = useState<Language | null>(null);
 
   // const handleSearch = useCallback(
   //   async (searchQuery: string) => {
@@ -151,6 +154,14 @@ export default function ResultsPage({
     selectedTargetLanguage2?.lang_code,
     getLexemeDetails,
   ]);
+
+  const handleContribute = (language: Language | null) => {
+    if (!language) {
+      return;
+    }
+    setOpen(true);
+    setContributingLanguage(language);
+  };
 
   // Auto-select first lexeme if available
   // useEffect(() => {
@@ -254,6 +265,7 @@ export default function ResultsPage({
                   title={
                     selectedSourceLanguage?.lang_label || "Source Language"
                   }
+                  onContribute={() => handleContribute(selectedSourceLanguage)}
                 />
               </div>
             </div>
@@ -293,6 +305,7 @@ export default function ResultsPage({
                     <LexemeDetailResultComponent
                       glossesWithSense={target1LexemeDetails}
                       title={selectedTargetLanguage1?.lang_label || "Target 1"}
+                      onContribute={() => handleContribute(selectedTargetLanguage1)}
                     />
                   </TabsContent>
 
@@ -300,6 +313,7 @@ export default function ResultsPage({
                     <LexemeDetailResultComponent
                       glossesWithSense={target2LexemeDetails}
                       title={selectedTargetLanguage2?.lang_label || "Target 2"}
+                      onContribute={() => handleContribute(selectedTargetLanguage2)}
                     />
                   </TabsContent>
                 </Tabs>
@@ -322,6 +336,7 @@ export default function ResultsPage({
         </div>
       </main>
       <Footer />
+      <ContributeModal open={open} onOpenChange={setOpen} language={contributingLanguage} />
       {/* <Toaster /> */}
     </div>
   );

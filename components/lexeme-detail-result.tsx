@@ -7,12 +7,14 @@ interface LexemeDetailResultProps {
   title?: string;
   glossesWithSense?: GlossWithSense[];
   lexemeDetail?: LexemeDetail;
+  onContribute?: () => void;
 }
 
 export default function LexemeDetailResultComponent({
   title,
   glossesWithSense,
   lexemeDetail,
+  onContribute,
 }: LexemeDetailResultProps) {
   return (
     <div className="space-y-4">
@@ -107,6 +109,7 @@ export default function LexemeDetailResultComponent({
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
                       }}
+                      onClick={onContribute}
                     >
                       Add audio
                     </Button>
