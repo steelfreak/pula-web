@@ -55,3 +55,21 @@ export interface ApiError {
   message: string;
   status?: number;
 } 
+
+export interface AddLabeledTranslationRequest {
+  lexeme_id: string;
+  sense_id: string;
+  translation_language: string;
+  translation_value: string;
+  is_new: boolean;
+  username: string;
+  categoryId: string;
+}
+
+export interface AddAudioTranslationRequest {
+  file_content: Blob; // file object
+  filename: string;
+  formid: string;
+  lang_label: string;
+  lang_wdqid: string;
+}

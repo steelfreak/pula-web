@@ -6,6 +6,8 @@ import {
   LexemeSearchRequest,
   LexemeDetailRequest,
   ApiError,
+  AddLabeledTranslationRequest,
+  AddAudioTranslationRequest,
 } from '@/lib/types/api';
 
 export const useApiWithStore = () => {
@@ -119,7 +121,43 @@ export const useApiWithStore = () => {
     }
   }, [setSelectedLexeme, setLexemeLoading, setLexemeError, toast]);
 
+  const addLabeledTranslation = useCallback(async (request: AddLabeledTranslationRequest) => {
+    setLexemeLoading(true);
+    setLexemeError(null);
+
+    try {
+      const response = await api.addLabeledTranslation(request);
+      console.log("response", response);
+      return response;
+    } catch (error) {
+      const apiError = error as ApiError;
+      setLexemeError(apiError.message);
+      throw apiError;
+    } finally {
+      setLexemeLoading(false);
+    }
+  }, [setLexemeError, setLexemeLoading]);
+
+  const addAudioTranslation = useCallback(async (request: AddAudioTranslationRequest) => {
+    setLexemeLoading(true);
+    setLexemeError(null);
+
+    try {
+      const response = await api.addAudioTranslation(request);
+      console.log("response", response);
+      return response;
+    } catch (error) {
+      const apiError = error as ApiError;
+      setLexemeError(apiError.message);
+      throw apiError;
+    } finally {
+      setLexemeLoading(false);
+    }
+  }, [setLexemeError]);
+
   return {
+    addLabeledTranslation,
+    addAudioTranslation,
     // Language store actions
     getLanguages,
     setSelectedSourceLanguage,

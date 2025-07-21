@@ -6,6 +6,8 @@ import {
   LexemeDetailRequest,
   LexemeDetailResult,
   ApiError,
+  AddLabeledTranslationRequest,
+  AddAudioTranslationRequest,
 } from './types/api';
 
 class ApiClient {
@@ -117,6 +119,28 @@ class ApiClient {
       throw error as ApiError;
     }
   }
+
+  /**
+   * Add a labeled translation for a lexeme
+   */
+  async addLabeledTranslation(request: AddLabeledTranslationRequest): Promise<void> {
+    try {
+      await this.client.post('/lexeme/translations', request);
+    } catch (error) {
+      throw error as ApiError;
+    }
+  }
+
+  /**
+   * Add an audio translation for a lexeme
+   */
+  async addAudioTranslation(request: AddAudioTranslationRequest): Promise<void> {
+    try {
+      await this.client.post('/lexeme/audio/add', request);
+    } catch (error) {
+      throw error as ApiError;
+    }
+  }
 }
 
 // Export a singleton instance
@@ -127,6 +151,8 @@ export const api = {
   getLanguages: () => apiClient.getLanguages(),
   searchLexemes: (request: LexemeSearchRequest) => apiClient.searchLexemes(request),
   getLexemeDetails: (request: LexemeDetailRequest) => apiClient.getLexemeDetails(request),
+  addLabeledTranslation: (request: AddLabeledTranslationRequest) => apiClient.addLabeledTranslation(request),
+  addAudioTranslation: (request: AddAudioTranslationRequest) => apiClient.addAudioTranslation(request),
 };
 
-export default apiClient; 
+export default apiClient;

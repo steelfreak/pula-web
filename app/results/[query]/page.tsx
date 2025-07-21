@@ -13,7 +13,9 @@ import { useToast } from "@/components/ui/use-toast";
 import SearchInput from "@/components/search-input";
 import LanguageSelect from "@/components/language-select";
 import { GlossWithSense, Language, LexemeDetailResult } from "@/lib/types/api";
-import ContributeModal from "@/components/contribute-modal";
+// import ContributeModal from "@/components/contribute-audio-modal";
+import ContributeAudioModal from "@/components/contribute-audio-modal";
+import ContributeLabelModal from "@/components/contribute-label-modal";
 
 export default function ResultsPage({
   params,
@@ -60,6 +62,7 @@ export default function ResultsPage({
   const [searchQuery, setSearchQuery] = useState(query || "");
   const [open, setOpen] = useState(false);
   const [contributingLanguage, setContributingLanguage] = useState<Language | null>(null);
+  const [contributingType, setContributingType] = useState<"label" | "audio" | null>(null);
 
   // const handleSearch = useCallback(
   //   async (searchQuery: string) => {
@@ -155,12 +158,13 @@ export default function ResultsPage({
     getLexemeDetails,
   ]);
 
-  const handleContribute = (language: Language | null) => {
+  const handleContribute = (type: "label" | "audio", language: Language | null) => {
     if (!language) {
       return;
     }
     setOpen(true);
     setContributingLanguage(language);
+    setContributingType(type);
   };
 
   // Auto-select first lexeme if available
@@ -305,7 +309,7 @@ export default function ResultsPage({
                     <LexemeDetailResultComponent
                       glossesWithSense={target1LexemeDetails}
                       title={selectedTargetLanguage1?.lang_label || "Target 1"}
-                      onContribute={() => handleContribute(selectedTargetLanguage1)}
+                      onContribute={(type) => handleContribute(type, selectedTargetLanguage1)}
                     />
                   </TabsContent>
 
@@ -313,7 +317,7 @@ export default function ResultsPage({
                     <LexemeDetailResultComponent
                       glossesWithSense={target2LexemeDetails}
                       title={selectedTargetLanguage2?.lang_label || "Target 2"}
-                      onContribute={() => handleContribute(selectedTargetLanguage2)}
+                      onContribute={(type) => handleContribute(type, selectedTargetLanguage2)}
                     />
                   </TabsContent>
                 </Tabs>
@@ -336,7 +340,8 @@ export default function ResultsPage({
         </div>
       </main>
       <Footer />
-      <ContributeModal open={open} onOpenChange={setOpen} language={contributingLanguage} />
+      <ContributeAudioModal open={contributingType === "audio" && open ? true : false} onOpenChange={setOpen} language={contributingLanguage} />
+      <ContributeLabelModal open={contributingType === "label" && open ? true : false} onOpenChange={setOpen} language={contributingLanguage} />
       {/* <Toaster /> */}
     </div>
   );

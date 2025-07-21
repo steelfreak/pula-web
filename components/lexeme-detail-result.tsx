@@ -7,7 +7,7 @@ interface LexemeDetailResultProps {
   title?: string;
   glossesWithSense?: GlossWithSense[];
   lexemeDetail?: LexemeDetail;
-  onContribute?: () => void;
+  onContribute?: (type: "label" | "audio") => void;
 }
 
 export default function LexemeDetailResultComponent({
@@ -69,12 +69,34 @@ export default function LexemeDetailResultComponent({
             <div key={index} className="py-3 rounded-lg">
               <div className="">
                 <div className="flex-1">
-                  <p
-                    className="font-medium mb-1"
-                    style={{ color: "#222222", textTransform: "capitalize" }}
-                  >
-                    {glossWithSense.gloss.value}
-                  </p>
+                  {glossWithSense.gloss.value ? (
+                    <p
+                      className="font-medium mb-1"
+                      style={{ color: "#222222", textTransform: "capitalize" }}
+                    >
+                      {glossWithSense.gloss.value}
+                    </p>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline" 
+                      className="text-xs"
+                      style={{
+                        color: "#0645ad",
+                        borderColor: "#0645ad",
+                        backgroundColor: "transparent"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#f0f8ff";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                      }}
+                      onClick={() => onContribute("label")}
+                    >
+                      Add label
+                    </Button>
+                  )}
                   <p className="text-xs" style={{ color: "#72777d" }}>
                     Form ID: {glossWithSense.gloss.formId} | Sense ID:{" "}
                     {glossWithSense.senseId}
@@ -109,7 +131,7 @@ export default function LexemeDetailResultComponent({
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
                       }}
-                      onClick={onContribute}
+                      onClick={() => onContribute("audio")}
                     >
                       Add audio
                     </Button>
