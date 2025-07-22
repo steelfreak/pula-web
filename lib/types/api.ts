@@ -67,7 +67,7 @@ export interface AddLabeledTranslationRequest {
 }
 
 export interface AddAudioTranslationRequest {
-  file_content: Blob; // file object
+  file_content: string; // base64-encoded audio
   filename: string;
   formid: string;
   lang_label: string;

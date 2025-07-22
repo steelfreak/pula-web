@@ -14,7 +14,7 @@ class ApiClient {
   private client: AxiosInstance;
 
   constructor() {
-    const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:5000/api';
+    const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://agpb-server-v1.toolforge.org/api';
     
     this.client = axios.create({
       baseURL,

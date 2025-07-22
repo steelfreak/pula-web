@@ -8,7 +8,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Language, LexemeSearchRequest, LexemeSearchResult } from "@/lib/types/api";
+import { AddLabeledTranslationRequest, Language, LexemeSearchRequest, LexemeSearchResult } from "@/lib/types/api";
 import { useEffect, useState } from "react";
 import { useApiWithStore } from "@/hooks/useApiWithStore";
 import { api } from "@/lib/api";
@@ -30,9 +30,9 @@ export default function ContributeLabelModal({
   const { selectedLexeme, addLabeledTranslation } = useApiWithStore();
 
   const handleSubmit = async () => {
-    const request = {
-      lexeme_id: selectedLexeme?.lexeme?.id,
-      sense_id: selectedLexeme?.glosses[0]?.senseId,
+    const request: AddLabeledTranslationRequest = {
+      lexeme_id: selectedLexeme?.lexeme?.id || "",
+      sense_id: selectedLexeme?.glosses[0]?.senseId || "",
       translation_language: language?.lang_code || "",
       translation_value: query, // check
       is_new: hasSelectedLexeme, // check

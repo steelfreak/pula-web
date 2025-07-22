@@ -13,6 +13,7 @@ import { Mic, Square, Play, RotateCcw } from "lucide-react";
 import { WaveformVisualizer } from "./contribution/waveform-visualizer";
 import { AddAudioTranslationRequest, Language } from "@/lib/types/api";
 import { useApiWithStore } from "@/hooks/useApiWithStore";
+import { base64ToPythonByteLiteral } from "@/lib/utils";
 
 interface ContributeModalProps {
   open: boolean;
@@ -34,6 +35,8 @@ export default function ContributeAudioModal({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { selectedLexeme, addAudioTranslation } = useApiWithStore();
+  const [audioBase64, setAudioBase64] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (isRecording) {
@@ -70,6 +73,14 @@ export default function ContributeAudioModal({
       mediaRecorder.onstop = () => {
         const blob = new Blob(chunks, { type: "audio/webm" });
         setAudioBlob(blob);
+
+        // Convert to base64
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64 = reader.result as string;
+          setAudioBase64(base64);
+        };
+        reader.readAsDataURL(blob);
       };
 
       mediaRecorder.start();
@@ -111,13 +122,16 @@ export default function ContributeAudioModal({
     }
   };
 
+  /**
+   * Handle the submission of the audio translation
+   */
   const handleSubmit = async () => {
-    if (!audioBlob) {
+    if (!audioBase64) {
       return;
     }
 
     const request: AddAudioTranslationRequest = {
-      file_content: audioBlob,
+      file_content: base64ToPythonByteLiteral(audioBase64),
       filename: "audio.ogg",
       formid: selectedLexeme?.glosses[0]?.gloss.formId || "",
       lang_label: language?.lang_label || "",
