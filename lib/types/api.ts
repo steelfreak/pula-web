@@ -73,3 +73,11 @@ export interface AddAudioTranslationRequest {
   lang_label: string;
   lang_wdqid: string;
 }
+
+export interface LoginResponse {
+  redirect_string: string;
+}
+
+export interface OauthCallbackResponse {
+  token: string;
+}

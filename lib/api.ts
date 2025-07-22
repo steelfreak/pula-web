@@ -8,6 +8,8 @@ import {
   ApiError,
   AddLabeledTranslationRequest,
   AddAudioTranslationRequest,
+  LoginResponse,
+  OauthCallbackResponse,
 } from './types/api';
 
 class ApiClient {
@@ -84,6 +86,15 @@ class ApiClient {
     );
   }
 
+  // Set token for authenticated requests
+  setAuthToken(token: string | null) {
+    if (token) {
+      this.client.defaults.headers.common['x-access-tokens'] = token;
+    } else {
+      delete this.client.defaults.headers.common['x-access-tokens'];
+    }
+  }
+
   /**
    * Get list of available languages
    */
@@ -141,6 +152,41 @@ class ApiClient {
       throw error as ApiError;
     }
   }
+
+  /**
+   * Login: Get redirect string for OAuth
+   */
+  async login(): Promise<LoginResponse> {
+    try {
+      const response: AxiosResponse<LoginResponse> = await this.client.get('/auth/login');
+      return response.data;
+    } catch (error) {
+      throw error as ApiError;
+    }
+  }
+
+  /**
+   * OAuth callback: Exchange verifier/token for app token
+   */
+  async oauthCallback(oauth_verifier: string, oauth_token: string): Promise<OauthCallbackResponse> {
+    try {
+      const response: AxiosResponse<OauthCallbackResponse> = await this.client.get(`/oauth-callback?oauth_verifier=${encodeURIComponent(oauth_verifier)}&oauth_token=${encodeURIComponent(oauth_token)}`);
+      return response.data;
+    } catch (error) {
+      throw error as ApiError;
+    }
+  }
+
+  /**
+   * Logout: Invalidate the session on the backend
+   */
+  async logout(): Promise<void> {
+    try {
+      await this.client.get('/auth/logout');
+    } catch (error) {
+      throw error as ApiError;
+    }
+  }
 }
 
 // Export a singleton instance
@@ -153,6 +199,10 @@ export const api = {
   getLexemeDetails: (request: LexemeDetailRequest) => apiClient.getLexemeDetails(request),
   addLabeledTranslation: (request: AddLabeledTranslationRequest) => apiClient.addLabeledTranslation(request),
   addAudioTranslation: (request: AddAudioTranslationRequest) => apiClient.addAudioTranslation(request),
+  login: () => apiClient.login(),
+  oauthCallback: (oauth_verifier: string, oauth_token: string) => apiClient.oauthCallback(oauth_verifier, oauth_token),
+  logout: () => apiClient.logout(),
+  setAuthToken: (token: string | null) => apiClient.setAuthToken(token),
 };
 
 export default apiClient;

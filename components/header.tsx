@@ -1,10 +1,32 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Menu, User } from "lucide-react"
-import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { useApiWithStore } from "@/hooks/useApiWithStore"
+import { useAuthStore } from "@/lib/stores/authStore"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { login, logout } = useApiWithStore();
+  const token = useAuthStore(state => state.token);
+  const hydrate = useAuthStore(state => state.hydrate);
+
+  useEffect(() => {
+    hydrate();
+  }, [hydrate]);
+
+  const handleLogin = async () => {
+    const data = await login();
+    if (data.redirect_string) {
+      window.location.href = data.redirect_string;
+    }
+  }
+
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = "/";
+  }
 
   return (
     <header className="border-b bg-white" style={{ borderColor: "#a2a9b1" }}>
@@ -61,6 +83,12 @@ export default function Header() {
             <button className="p-2 transition-colors" style={{ color: "#72777d" }}>
               <User className="w-5 h-5" />
             </button>
+            <Button
+              variant="outline"
+              onClick={token ? handleLogout : handleLogin}
+            >
+              {token ? "Logout" : "Login"}
+            </Button>
             <button
               className="md:hidden p-2 transition-colors"
               style={{ color: "#72777d" }}

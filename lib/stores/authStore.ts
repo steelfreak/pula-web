@@ -1,0 +1,32 @@
+import { create } from 'zustand';
+
+const TOKEN_KEY = 'auth_token';
+
+interface AuthState {
+  token: string | null;
+  setToken: (token: string) => void;
+  clearToken: () => void;
+  hydrate: () => void;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  token: null,
+  setToken: (token) => {
+    set({ token });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(TOKEN_KEY, token);
+    }
+  },
+  clearToken: () => {
+    set({ token: null });
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(TOKEN_KEY);
+    }
+  },
+  hydrate: () => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(TOKEN_KEY);
+      if (stored) set({ token: stored });
+    }
+  },
+})); 

@@ -2,16 +2,20 @@ import { useCallback } from 'react';
 import { api } from '@/lib/api';
 import { useLanguageStore, useLexemeStore } from '@/lib/stores';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuthStore } from '@/lib/stores/authStore';
 import {
   LexemeSearchRequest,
   LexemeDetailRequest,
   ApiError,
   AddLabeledTranslationRequest,
   AddAudioTranslationRequest,
+  LoginResponse,
+  OauthCallbackResponse,
 } from '@/lib/types/api';
 
 export const useApiWithStore = () => {
   const { toast } = useToast();
+  const token = useAuthStore(state => state.token);
   
   // Use individual selectors to avoid object recreation
   const setLanguages = useLanguageStore(state => state.setLanguages);
@@ -29,6 +33,7 @@ export const useApiWithStore = () => {
   const setLexemeError = useLexemeStore(state => state.setError);
 
   const getLanguages = useCallback(async () => {
+    api.setAuthToken(token);
     setLanguageLoading(true);
     setLanguageError(null);
     
@@ -122,6 +127,7 @@ export const useApiWithStore = () => {
   }, [setSelectedLexeme, setLexemeLoading, setLexemeError, toast]);
 
   const addLabeledTranslation = useCallback(async (request: AddLabeledTranslationRequest) => {
+    api.setAuthToken(token);
     setLexemeLoading(true);
     setLexemeError(null);
 
@@ -136,9 +142,10 @@ export const useApiWithStore = () => {
     } finally {
       setLexemeLoading(false);
     }
-  }, [setLexemeError, setLexemeLoading]);
+  }, [setLexemeError, setLexemeLoading, token]);
 
   const addAudioTranslation = useCallback(async (request: AddAudioTranslationRequest) => {
+    api.setAuthToken(token);
     setLexemeLoading(true);
     setLexemeError(null);
 
@@ -153,7 +160,54 @@ export const useApiWithStore = () => {
     } finally {
       setLexemeLoading(false);
     }
-  }, [setLexemeError]);
+  }, [setLexemeError, token]);
+
+  const login = useCallback(async () => {
+    try {
+      return await api.login();
+    } catch (error) {
+      const apiError = error as ApiError;
+      toast({
+        title: "Login failed",
+        description: apiError.message,
+        variant: "destructive",
+      });
+      throw apiError;
+    }
+  }, [toast]);
+
+  const oauthCallback = useCallback(async (oauth_verifier: string, oauth_token: string) => {
+    api.setAuthToken(token);
+    try {
+      return await api.oauthCallback(oauth_verifier, oauth_token);
+    } catch (error) {
+      const apiError = error as ApiError;
+      toast({
+        title: "OAuth Callback failed",
+        description: apiError.message,
+        variant: "destructive",
+      });
+      throw apiError;
+    }
+  }, [toast, token]);
+
+  const clearToken = useAuthStore(state => state.clearToken);
+
+  const logout = useCallback(async () => {
+    api.setAuthToken(token);
+    try {
+      await api.logout();
+      clearToken();
+    } catch (error) {
+      const apiError = error as ApiError;
+      toast({
+        title: "Logout failed",
+        description: apiError.message,
+        variant: "destructive",
+      });
+      throw apiError;
+    }
+  }, [toast, token, clearToken]);
 
   return {
     addLabeledTranslation,
@@ -169,6 +223,11 @@ export const useApiWithStore = () => {
     getLexemeDetails,
     setQuery,
     setClickedLexeme,
+    
+    // Auth actions
+    login,
+    oauthCallback,
+    logout,
     
     // State from stores
     languages: useLanguageStore(state => state.languages),
