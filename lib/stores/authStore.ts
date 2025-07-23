@@ -2,16 +2,16 @@ import { create } from 'zustand';
 
 const TOKEN_KEY = 'auth_token';
 
-interface AuthState {
+export interface AuthState {
   token: string | null;
   setToken: (token: string) => void;
   clearToken: () => void;
   hydrate: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set: any) => ({
   token: null,
-  setToken: (token) => {
+  setToken: (token: string) => {
     set({ token });
     if (typeof window !== 'undefined') {
       localStorage.setItem(TOKEN_KEY, token);

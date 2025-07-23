@@ -10,6 +10,8 @@ import {
   AddAudioTranslationRequest,
   LoginResponse,
   OauthCallbackResponse,
+  LexemeMissingAudioResquest,
+  LexemeMissingAudioResponse,
 } from './types/api';
 
 class ApiClient {
@@ -17,7 +19,7 @@ class ApiClient {
 
   constructor() {
     const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://agpb-server-v1.toolforge.org/api';
-    
+
     this.client = axios.create({
       baseURL,
       timeout: 10000,
@@ -187,6 +189,20 @@ class ApiClient {
       throw error as ApiError;
     }
   }
+
+  /**
+   * Get list of lexemes missing audio for a language
+   */
+  async getLexemeMissingAudio(request: LexemeMissingAudioResquest): Promise<LexemeMissingAudioResponse> {
+    try {
+      const response: AxiosResponse<LexemeMissingAudioResponse> = await this.client.post('/lexemes/missing/audio', request);
+      return response.data;
+    } catch (error) {
+      throw error as ApiError;
+    }
+  }
+
+
 }
 
 // Export a singleton instance
@@ -203,6 +219,7 @@ export const api = {
   oauthCallback: (oauth_verifier: string, oauth_token: string) => apiClient.oauthCallback(oauth_verifier, oauth_token),
   logout: () => apiClient.logout(),
   setAuthToken: (token: string | null) => apiClient.setAuthToken(token),
+  getLexemeMissingAudio:(request: LexemeMissingAudioResquest) => apiClient.getLexemeMissingAudio(request),
 };
 
 export default apiClient;

@@ -1,59 +1,68 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { X, Plus } from "lucide-react"
+import { useLanguageStore } from "@/lib/stores"
+import { useApiWithStore } from "@/hooks/useApiWithStore"
+
 
 interface LanguageSelectionProps {
-  onLanguageChange: (primary: string, targets: string[]) => void
+  value: string
+  onChange: (primary: string) => void
+  placeholder?: string
+  label?: string
 }
 
-const languages = [
-  { code: "en", name: "English", flag: "🇺🇸" },
-  { code: "es", name: "Spanish", flag: "🇪🇸" },
-  { code: "fr", name: "French", flag: "🇫🇷" },
-  { code: "de", name: "German", flag: "🇩🇪" },
-  { code: "it", name: "Italian", flag: "🇮🇹" },
-  { code: "pt", name: "Portuguese", flag: "🇵🇹" },
-  { code: "ru", name: "Russian", flag: "🇷🇺" },
-  { code: "ja", name: "Japanese", flag: "🇯🇵" },
-  { code: "ko", name: "Korean", flag: "🇰🇷" },
-  { code: "zh", name: "Chinese", flag: "🇨🇳" },
-  { code: "ar", name: "Arabic", flag: "🇸🇦" },
-  { code: "hi", name: "Hindi", flag: "🇮🇳" },
-]
 
-export function LanguageSelection({ onLanguageChange }: LanguageSelectionProps) {
-  const [primaryLanguage, setPrimaryLanguage] = useState("")
-  const [targetLanguages, setTargetLanguages] = useState<string[]>([])
-  const [selectedTargetLanguage, setSelectedTargetLanguage] = useState("")
 
-  const handlePrimaryLanguageChange = (value: string) => {
-    setPrimaryLanguage(value)
-    onLanguageChange(value, targetLanguages)
-  }
+export function LanguageSelection({ value, onChange, placeholder = "Select language", label }: LanguageSelectionProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const selectRef = useRef<HTMLDivElement>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const { getLanguages } = useApiWithStore()
+  const { languages, loading, error } = useLanguageStore()
 
-  const addTargetLanguage = () => {
-    if (selectedTargetLanguage && !targetLanguages.includes(selectedTargetLanguage)) {
-      const newTargets = [...targetLanguages, selectedTargetLanguage]
-      setTargetLanguages(newTargets)
-      setSelectedTargetLanguage("")
-      onLanguageChange(primaryLanguage, newTargets)
+  useEffect(() => {
+    getLanguages()
+  }, [getLanguages])
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+        setSearchQuery("")
+      }
     }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      setTimeout(() => searchInputRef.current?.focus(), 100)
+    }
+  }, [isOpen])
+
+  const handleSelect = (languageCode: string) => {
+    onChange(languageCode)
+    setIsOpen(false)
+    setSearchQuery("")
   }
 
-  const removeTargetLanguage = (languageCode: string) => {
-    const newTargets = targetLanguages.filter((lang) => lang !== languageCode)
-    setTargetLanguages(newTargets)
-    onLanguageChange(primaryLanguage, newTargets)
-  }
+  const filteredLanguages = languages.filter((language: { lang_label: string; lang_code: string }) =>
+    language.lang_label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    language.lang_code.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
-  const getLanguageDisplay = (code: string) => {
-    const lang = languages.find((l) => l.code === code)
-    return lang ? `${lang.flag} ${lang.name}` : code
+  const getDisplayValue = () => {
+    if (!value) return placeholder
+    const selectedLanguage = languages.find((lang: { lang_code: string; lang_label: string }) => lang.lang_code === value)
+    return selectedLanguage ? selectedLanguage.lang_label : value
   }
 
   return (
@@ -64,101 +73,96 @@ export function LanguageSelection({ onLanguageChange }: LanguageSelectionProps) 
           Choose your primary language for word generation and target languages for contributions
         </p>
       </div>
-
-      {/* Primary Language Selection */}
       <div className="space-y-4">
         <div>
           <Label className="text-lg font-medium">Primary Language</Label>
           <p className="text-sm text-gray-600 mb-3">
             This language will be used to source words and lexemes for contribution
           </p>
-          <Select value={primaryLanguage} onValueChange={handlePrimaryLanguageChange}>
-            <SelectTrigger className="h-12">
-              <SelectValue placeholder="Select primary language" />
-            </SelectTrigger>
-            <SelectContent>
-              {languages.map((lang) => (
-                <SelectItem key={lang.code} value={lang.code}>
-                  <div className="flex items-center gap-2">
-                    <span>{lang.flag}</span>
-                    <span>{lang.name}</span>
+          <div className="relative" ref={selectRef}>
+            <button
+              type="button"
+              onClick={() => setIsOpen(!isOpen)}
+              className="w-full bg-white rounded px-3 py-2 text-left text-sm focus:outline-none transition-colors h-12 border"
+              style={{
+                border: `1px solid #a2a9b1`,
+                color: value ? "#222222" : "#72777d",
+              }}
+              onFocus={e => (e.currentTarget.style.borderColor = "#0645ad")}
+              onBlur={e => (e.currentTarget.style.borderColor = "#a2a9b1")}
+            >
+              <span className="block truncate">{getDisplayValue()}</span>
+              <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                <svg className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`} style={{ color: "#72777d" }} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+              </span>
+            </button>
+            {isOpen && (
+              <div
+                className="absolute z-10 mt-1 w-full bg-white rounded shadow-lg max-h-60 overflow-auto"
+                style={{ border: `1px solid #a2a9b1` }}
+              >
+                {/* Search Input */}
+                <div className="p-2 border-b" style={{ borderColor: "#e9ecef" }}>
+                  <div className="relative">
+                    <svg className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: "#72777d" }} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      placeholder="Search languages..."
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      className="w-full pl-8 pr-3 py-2 text-sm border rounded focus:outline-none"
+                      style={{
+                        borderColor: "#a2a9b1",
+                        color: "#222222",
+                      }}
+                      onFocus={e => (e.currentTarget.style.borderColor = "#0645ad")}
+                      onBlur={e => (e.currentTarget.style.borderColor = "#a2a9b1")}
+                    />
                   </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Target Languages Selection */}
-      <div className="space-y-4">
-        <div>
-          <Label className="text-lg font-medium">Target Languages</Label>
-          <p className="text-sm text-gray-600 mb-3">Languages in which you will add audio recordings and labels</p>
-
-          <div className="flex gap-2 mb-4">
-            <Select value={selectedTargetLanguage} onValueChange={setSelectedTargetLanguage}>
-              <SelectTrigger className="flex-1 h-12">
-                <SelectValue placeholder="Select target language" />
-              </SelectTrigger>
-              <SelectContent>
-                {languages
-                  .filter((lang) => !targetLanguages.includes(lang.code))
-                  .map((lang) => (
-                    <SelectItem key={lang.code} value={lang.code}>
-                      <div className="flex items-center gap-2">
-                        <span>{lang.flag}</span>
-                        <span>{lang.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-            <Button onClick={addTargetLanguage} disabled={!selectedTargetLanguage} className="h-12 px-4">
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
-
-          {/* Selected Target Languages */}
-          {targetLanguages.length > 0 && (
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700">Selected Target Languages:</Label>
-              <div className="flex flex-wrap gap-2">
-                {targetLanguages.map((langCode) => (
-                  <Badge key={langCode} variant="secondary" className="px-3 py-1 text-sm">
-                    {getLanguageDisplay(langCode)}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeTargetLanguage(langCode)}
-                      className="ml-2 h-4 w-4 p-0 hover:bg-transparent"
+                </div>
+                {/* Language Options */}
+                <div className="max-h-48 overflow-auto">
+                  {loading && (
+                    <div className="px-3 py-2 text-sm" style={{ color: "#72777d" }}>
+                      Loading languages...
+                    </div>
+                  )}
+                  {error && (
+                    <div className="px-3 py-2 text-sm" style={{ color: "#d73a49" }}>
+                      Error: {error}
+                    </div>
+                  )}
+                  {!loading && !error && filteredLanguages.length === 0 && (
+                    <div className="px-3 py-2 text-sm" style={{ color: "#72777d" }}>
+                      No languages found
+                    </div>
+                  )}
+                  {!loading && !error && filteredLanguages.map((language: { lang_code: string; lang_label: string; flag?: string }) => (
+                    <button
+                      key={language.lang_code}
+                      type="button"
+                      onClick={() => handleSelect(language.lang_code)}
+                      className="w-full text-left px-3 py-2 text-sm focus:outline-none flex items-center justify-between transition-colors"
+                      style={{ color: "#222222" }}
+                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#f8f9fa")}
+                      onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}
                     >
-                      <X className="w-3 h-3" />
-                    </Button>
-                  </Badge>
-                ))}
+                      <span className="flex items-center gap-2">
+                        {language.flag && <span>{language.flag}</span>}
+                        <span>{language.lang_label}</span>
+                      </span>
+                      {value === language.lang_code && (
+                        <svg className="w-4 h-4" style={{ color: "#0645ad" }} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Summary */}
-      {primaryLanguage && targetLanguages.length > 0 && (
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h3 className="font-medium text-blue-900 mb-2">Configuration Summary</h3>
-          <div className="text-sm text-blue-800 space-y-1">
-            <p>
-              <strong>Primary Language:</strong> {getLanguageDisplay(primaryLanguage)}
-              <span className="text-blue-600"> (source for word generation)</span>
-            </p>
-            <p>
-              <strong>Target Languages:</strong> {targetLanguages.map(getLanguageDisplay).join(", ")}
-              <span className="text-blue-600"> (for audio and label contributions)</span>
-            </p>
+            )}
           </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }
