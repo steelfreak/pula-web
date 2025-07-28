@@ -30,15 +30,15 @@ export default function ContributeLabelModal({
   const { selectedLexeme, addLabeledTranslation } = useApiWithStore();
 
   const handleSubmit = async () => {
-    const request: AddLabeledTranslationRequest = {
+    const request: AddLabeledTranslationRequest[] = [{
       lexeme_id: selectedLexeme?.lexeme?.id || "",
-      sense_id: selectedLexeme?.glosses[0]?.senseId || "",
+      lexeme_sense_id: selectedLexeme?.glosses[0]?.senseId || "",
       translation_language: language?.lang_code || "",
       translation_value: query, // check
       is_new: hasSelectedLexeme, // check
       username: "JohnD12", // check
       categoryId: selectedLexeme?.lexeme?.lexicalCategoryId || "", // check
-    }
+    }]
     console.log("handleSubmit", request);
     const response = await addLabeledTranslation(request);
     console.log("response", response);
