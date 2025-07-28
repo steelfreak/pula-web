@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-const TOKEN_KEY = 'auth_token';
+export const TOKEN_KEY = 'auth_token';
 
 export interface AuthState {
   token: string | null;

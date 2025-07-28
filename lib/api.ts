@@ -13,6 +13,8 @@ import {
   LexemeMissingAudioResquest,
   LexemeMissingAudioResponse,
 } from './types/api';
+import { TOKEN_KEY } from './stores/authStore';
+import { checkIf401Error } from './utils';
 
 class ApiClient {
   private client: AxiosInstance;
@@ -56,6 +58,8 @@ class ApiClient {
               break;
             case 401:
               errorMessage = 'Unauthorized: Please check your credentials.';
+              // localStorage.removeItem(TOKEN_KEY);
+              // window.location.href = '/';
               break;
             case 403:
               errorMessage = 'Forbidden: Access denied.';
@@ -140,6 +144,7 @@ class ApiClient {
     try {
       await this.client.post('/lexemes/translations/add', request);
     } catch (error) {
+      checkIf401Error(error as ApiError);
       throw error as ApiError;
     }
   }
@@ -147,10 +152,11 @@ class ApiClient {
   /**
    * Add an audio translation for a lexeme
    */
-  async addAudioTranslation(request: AddAudioTranslationRequest): Promise<void> {
+  async addAudioTranslation(request: AddAudioTranslationRequest[]): Promise<void> {
     try {
       await this.client.post('/lexeme/audio/add', request);
     } catch (error) {
+      checkIf401Error(error as ApiError);
       throw error as ApiError;
     }
   }
@@ -186,6 +192,7 @@ class ApiClient {
     try {
       await this.client.get('/auth/logout');
     } catch (error) {
+      checkIf401Error(error as ApiError);
       throw error as ApiError;
     }
   }
@@ -214,7 +221,7 @@ export const api = {
   searchLexemes: (request: LexemeSearchRequest) => apiClient.searchLexemes(request),
   getLexemeDetails: (request: LexemeDetailRequest) => apiClient.getLexemeDetails(request),
   addLabeledTranslation: (request: AddLabeledTranslationRequest[]) => apiClient.addLabeledTranslation(request),
-  addAudioTranslation: (request: AddAudioTranslationRequest) => apiClient.addAudioTranslation(request),
+  addAudioTranslation: (request: AddAudioTranslationRequest[]) => apiClient.addAudioTranslation(request),
   login: () => apiClient.login(),
   oauthCallback: (oauth_verifier: string, oauth_token: string) => apiClient.oauthCallback(oauth_verifier, oauth_token),
   logout: () => apiClient.logout(),

@@ -1,5 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { TOKEN_KEY } from "./stores/authStore";
+import { ApiError } from "./types/api";
 
 /**
  * Merge class names
@@ -59,5 +61,13 @@ export const base64ToPythonByteLiteral = (base64: string): string => {
     })
     .join('');
   return `b'${asciiString}'`;
+}
+
+export const checkIf401Error = (error: ApiError) => {
+  if (error.status === 401) {
+    alert('Unauthorized: Please check your credentials.');
+    // localStorage.removeItem(TOKEN_KEY);
+    // window.location.href = '/';
+  }
 }
 
