@@ -136,7 +136,7 @@ class ApiClient {
    */
   async addLabeledTranslation(request: AddLabeledTranslationRequest[]): Promise<void> {
     try {
-      await this.client.post('/lexeme/translations/add', request);
+      await this.client.post('/lexemes/translations/add', request);
     } catch (error) {
       throw error as ApiError;
     }

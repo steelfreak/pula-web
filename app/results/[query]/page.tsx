@@ -182,6 +182,10 @@ export default function ResultsPage({
     setContributingType(type);
   };
 
+  const onContributeSuccess = async () => {
+    await getLexemeDetails();
+  };
+
   // Auto-select first lexeme if available
   // useEffect(() => {
   //   if (lexemes && lexemes.length > 0 && !sourceLexemeDetails) {
@@ -370,15 +374,17 @@ export default function ResultsPage({
             open={contributingType === "audio" && open ? true : false}
             onOpenChange={setOpen}
             language={contributingLanguage}
+            onSuccess={onContributeSuccess}
           />
           <ContributeLabelModal
             open={contributingType === "label" && open ? true : false}
             onOpenChange={setOpen}
             language={contributingLanguage}
+            onSuccess={onContributeSuccess}
           />
         </>
       )}
-      {/* <Toaster /> */}
+      <Toaster />
     </div>
   );
 }

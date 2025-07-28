@@ -13,18 +13,21 @@ import { Mic, Square, Play, RotateCcw } from "lucide-react";
 import { WaveformVisualizer } from "./contribution/waveform-visualizer";
 import { AddAudioTranslationRequest, Language } from "@/lib/types/api";
 import { useApiWithStore } from "@/hooks/useApiWithStore";
-import { base64ToPythonByteLiteral } from "@/lib/utils";
+import { base64ToPythonByteLiteral, blobToBase64 } from "@/lib/utils";
+import { generateAudioFilename } from "@/utils/label-validation";
 
 interface ContributeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   language: Language | null;
+  onSuccess?: () => void;
 }
 
 export default function ContributeAudioModal({
   open,
   onOpenChange,
   language,
+  onSuccess,
 }: ContributeModalProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -71,7 +74,7 @@ export default function ContributeAudioModal({
       const chunks: BlobPart[] = [];
       mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: "audio/webm" });
+        const blob = new Blob(chunks, { type: "audio/ogg" });
         setAudioBlob(blob);
 
         // Convert to base64
@@ -130,9 +133,15 @@ export default function ContributeAudioModal({
       return;
     }
 
+    // Generate filename using the utility function
+    const lexemeId = selectedLexeme?.lexeme?.id || "";
+    const destinationLanguageCode = language?.lang_code || "";
+    const label = selectedLexeme?.glosses[0]?.gloss.value || "";
+    const filename = generateAudioFilename(lexemeId, destinationLanguageCode, label);
+
     const request: AddAudioTranslationRequest = {
-      file_content: base64ToPythonByteLiteral(audioBase64),
-      filename: "audio.ogg",
+      file_content: audioBase64,
+      filename: filename,
       formid: selectedLexeme?.glosses[0]?.gloss.formId || "",
       lang_label: language?.lang_label || "",
       lang_wdqid: language?.lang_wd_id || "",
@@ -140,6 +149,7 @@ export default function ContributeAudioModal({
     console.log("Creating audio translation", request);
     const response = await addAudioTranslation(request);
     console.log("Audio translation created", response);
+    onSuccess?.();
   };
 
   return (
