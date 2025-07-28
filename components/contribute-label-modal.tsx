@@ -17,12 +17,14 @@ interface ContributeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   language: Language | null;
+  onSuccess?: () => void;
 }
 
 export default function ContributeLabelModal({
   open,
   onOpenChange,
   language,
+  onSuccess,
 }: ContributeModalProps) {
   const [query, setQuery] = useState("");
   const [lexemes, setLexemes] = useState<LexemeSearchResult[]>([]);
@@ -35,13 +37,13 @@ export default function ContributeLabelModal({
       lexeme_sense_id: selectedLexeme?.glosses[0]?.senseId || "",
       translation_language: language?.lang_code || "",
       translation_value: query, // check
-      is_new: hasSelectedLexeme, // check
-      username: "JohnD12", // check
+      is_new: !hasSelectedLexeme, // check
       categoryId: selectedLexeme?.lexeme?.lexicalCategoryId || "", // check
     }]
     console.log("handleSubmit", request);
     const response = await addLabeledTranslation(request);
     console.log("response", response);
+    onSuccess?.();
   };
 
   const getLexemes = async () => {

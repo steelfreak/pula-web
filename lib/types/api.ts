@@ -64,7 +64,6 @@ export interface AddLabeledTranslationRequest {
   translation_language: string;
   translation_value: string;
   is_new: boolean;
-  username: string;
   categoryId: string;
 }
 
