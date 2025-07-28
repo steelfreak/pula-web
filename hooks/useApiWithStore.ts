@@ -126,7 +126,7 @@ export const useApiWithStore = () => {
     }
   }, [setSelectedLexeme, setLexemeLoading, setLexemeError, toast]);
 
-  const addLabeledTranslation = useCallback(async (request: AddLabeledTranslationRequest) => {
+  const addLabeledTranslation = useCallback(async (request: AddLabeledTranslationRequest[]) => {
     api.setAuthToken(token);
     setLexemeLoading(true);
     setLexemeError(null);

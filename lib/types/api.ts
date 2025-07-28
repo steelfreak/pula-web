@@ -58,7 +58,7 @@ export interface ApiError {
 
 export interface AddLabeledTranslationRequest {
   lexeme_id: string;
-  sense_id: string;
+  lexeme_sense_id: string;
   translation_language: string;
   translation_value: string;
   is_new: boolean;
