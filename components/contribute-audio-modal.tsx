@@ -139,13 +139,13 @@ export default function ContributeAudioModal({
     const label = selectedLexeme?.glosses[0]?.gloss.value || "";
     const filename = generateAudioFilename(lexemeId, destinationLanguageCode, label);
 
-    const request: AddAudioTranslationRequest = {
+    const request: AddAudioTranslationRequest[] = [{
       file_content: audioBase64,
       filename: filename,
       formid: selectedLexeme?.glosses[0]?.gloss.formId || "",
       lang_label: language?.lang_label || "",
       lang_wdqid: language?.lang_wd_id || "",
-    };
+    }];
     console.log("Creating audio translation", request);
     const response = await addAudioTranslation(request);
     console.log("Audio translation created", response);

@@ -49,7 +49,7 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a
+            {/* <a
               href="#"
               className="text-sm font-medium transition-colors hover:underline"
               style={{ color: "#0645ad" }}
@@ -66,7 +66,7 @@ export default function Header() {
               onMouseLeave={(e) => (e.currentTarget.style.color = "#0645ad")}
             >
               About
-            </a>
+            </a> */}
             <a
               href="/contribute"
               className="text-sm font-medium transition-colors hover:underline"

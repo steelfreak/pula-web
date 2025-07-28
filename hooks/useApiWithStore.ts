@@ -144,7 +144,7 @@ export const useApiWithStore = () => {
     }
   }, [setLexemeError, setLexemeLoading, token]);
 
-  const addAudioTranslation = useCallback(async (request: AddAudioTranslationRequest) => {
+  const addAudioTranslation = useCallback(async (request: AddAudioTranslationRequest[]) => {
     api.setAuthToken(token);
     setLexemeLoading(true);
     setLexemeError(null);
