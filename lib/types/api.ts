@@ -95,6 +95,6 @@ export interface LexemeMissingAudioResponse {
 export interface LexemeMissingAudioResquest {
   lang_code: string,
   lang_wdqid: string,
-  page: number,
-  page_size: number
+  page: number | 1,
+  page_size: number | 15
 }

@@ -1,16 +1,24 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
+import { api } from "@/lib/api"
+import type { AddAudioTranslationRequest } from "@/lib/types/api"
 import { Button } from "@/components/ui/button"
 import { Play, Pause, Trash2, Download, Upload, Keyboard, X } from "lucide-react"
 
+interface RecordingData {
+  lexeme_id: string
+  formId: string
+  lemma: string
+  audioBlob?: Blob
+  isRecorded: boolean
+  duration?: number
+  lang_label: string
+  lang_wdqid: string
+}
+
 interface ReviewInterfaceProps {
-  recordings: Array<{
-    word: string
-    audioBlob?: Blob
-    isRecorded: boolean
-    duration?: number
-  }>
+  recordings: RecordingData[]
   onSubmit: () => void
 }
 
@@ -154,6 +162,47 @@ export function ReviewInterface({ recordings, onSubmit }: ReviewInterfaceProps) 
     console.log("Delete recording at index:", index)
   }
 
+  const prepareAudioSubmission = (recording: RecordingData): Promise<AddAudioTranslationRequest | null> => {
+    if (!recording.audioBlob) return Promise.resolve(null);
+
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64Data = (reader.result as string).split(',')[1];
+        
+        const submission: AddAudioTranslationRequest = {
+          file_content: base64Data,
+          filename: `${recording.lexeme_id}-${recording.lang_label.toLowerCase()}-${recording.lemma}.ogg`,
+          formid: recording.formId,
+          lang_label: recording.lang_label,
+          lang_wdqid: recording.lang_wdqid
+        };
+        resolve(submission);
+      };
+      reader.readAsDataURL(recording.audioBlob as Blob);
+    });
+  }
+
+  const handleSubmitRecordings = async () => {
+    try {
+      const submissions = await Promise.all(
+        recordedItems
+          .filter(recording => recording.audioBlob)
+          .map(prepareAudioSubmission)
+      );
+
+      const validSubmissions = submissions.filter((s): s is AddAudioTranslationRequest => s !== null);
+      
+      for (const submission of validSubmissions) {
+        await api.addAudioTranslation(submission);
+      }
+      onSubmit();
+    } catch (error) {
+      console.error('Error submitting recordings:', error);
+      // Handle error - show error message to the user
+    }
+  }
+
   const downloadRecordings = () => {
     // Create a zip file or individual downloads
     console.log("Download recordings")
@@ -215,7 +264,7 @@ export function ReviewInterface({ recordings, onSubmit }: ReviewInterfaceProps) 
                       {playingIndex === index ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                     </Button>
                     <div>
-                      <h3 className="font-medium text-gray-900">{recording.word}</h3>
+                      <h3 className="font-medium text-gray-900">{recording.lemma}</h3>
                       <p className="text-sm text-gray-500">{recording.duration?.toFixed(1)}s</p>
                     </div>
                   </div>
@@ -252,7 +301,7 @@ export function ReviewInterface({ recordings, onSubmit }: ReviewInterfaceProps) 
             <Download className="w-4 h-4 mr-2" />
             Download
           </Button>
-          <Button onClick={onSubmit} disabled={recordedItems.length === 0} className="px-8">
+          <Button onClick={handleSubmitRecordings} disabled={recordedItems.length === 0} className="px-8">
             <Upload className="w-4 h-4 mr-2" />
             Submit Recordings
             <span className="ml-2 text-sm opacity-75">(Ctrl+Enter)</span>
