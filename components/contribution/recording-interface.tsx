@@ -3,8 +3,6 @@
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
   Settings,
   Grid3X3,
@@ -14,115 +12,33 @@ import {
   SkipBack,
   Keyboard,
   X,
-  Tag,
   CheckCircle,
-  Edit,
-  ExternalLink,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { HardwareCheckModal } from "./hardware-check-modal"
 
 interface LexemeWord {
-  id: string
-  word: string
+  lexeme_id: string
+  formId: string
+  lemma: string
+  categoryId: string
+  categoryLabel: string
+  sense_id: string
   hasAudio: boolean
-  hasLabel: boolean
   audioBlob?: Blob
-  label?: string
-  language: string
+  lang_label: string
+  lang_code: string
+  lang_wdqid: string
 }
 
 interface RecordingInterfaceProps {
   words: LexemeWord[]
   onComplete: () => void
-  setRecordings?: (recordings: WordRecording[]) => void
-  recordings?: WordRecording[]
+  setRecordings?: (recordings: RecordingData[]) => void
+  recordings?: RecordingData[]
 }
 
-interface WordRecording {
-  word: string
-  audioBlob?: Blob
-  isRecorded: boolean
-  duration?: number
-}
-
-// Generate sample data for recording interface
-const generateSampleRecordingData = (): LexemeWord[] => [
-  {
-    id: "1",
-    word: "Educational consultant",
-    hasAudio: false,
-    hasLabel: true,
-    label: "A professional who provides expert advice and guidance on educational matters, policies, and practices",
-    language: "en",
-  },
-  {
-    id: "2",
-    word: "End of studies collage",
-    hasAudio: false,
-    hasLabel: false,
-    language: "en",
-  },
-  {
-    id: "3",
-    word: "Language barrier",
-    hasAudio: true,
-    hasLabel: false,
-    language: "en",
-  },
-  {
-    id: "4",
-    word: "Life Study",
-    hasAudio: false,
-    hasLabel: false,
-    language: "en",
-  },
-  {
-    id: "5",
-    word: "Mississippi Miracle",
-    hasAudio: false,
-    hasLabel: true,
-    label: "Educational reform initiative in Mississippi that significantly improved student outcomes",
-    language: "en",
-  },
-  {
-    id: "6",
-    word: "Prison education",
-    hasAudio: true,
-    hasLabel: false,
-    language: "en",
-  },
-  {
-    id: "7",
-    word: "Social work management",
-    hasAudio: false,
-    hasLabel: false,
-    language: "en",
-  },
-  {
-    id: "8",
-    word: "Newcomer education",
-    hasAudio: false,
-    hasLabel: true,
-    label: "Educational programs designed for new immigrants and refugees",
-    language: "en",
-  },
-  {
-    id: "9",
-    word: "Organites",
-    hasAudio: false,
-    hasLabel: true,
-    label: "Small specialized structures within cells that perform specific functions",
-    language: "en",
-  },
-  {
-    id: "10",
-    word: "Social-emotional learning",
-    hasAudio: true,
-    hasLabel: false,
-    language: "en",
-  },
-]
+import type { RecordingData } from '@/types/recording'
 
 export function RecordingInterface({
   words: propWords,
@@ -130,7 +46,7 @@ export function RecordingInterface({
   setRecordings,
   recordings: externalRecordings,
 }: RecordingInterfaceProps) {
-  const [words, setWords] = useState<LexemeWord[]>(propWords.length > 0 ? propWords : generateSampleRecordingData())
+  const [words, setWords] = useState<LexemeWord[]>(propWords.length > 0 ? propWords : [])
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
   const [isRecording, setIsRecording] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -139,9 +55,6 @@ export function RecordingInterface({
   const [isHardwareCheckOpen, setIsHardwareCheckOpen] = useState(false)
   const [hardwareCheckCompleted, setHardwareCheckCompleted] = useState(false)
   const [currentLabel, setCurrentLabel] = useState("")
-  const [showLabelInput, setShowLabelInput] = useState(false)
-  const [editingLabel, setEditingLabel] = useState(false)
-  const [isLabelModalOpen, setIsLabelModalOpen] = useState(false)
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
@@ -149,15 +62,15 @@ export function RecordingInterface({
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
 
-  const incompleteWords = words.filter((word) => !word.hasAudio || !word.hasLabel)
+  const incompleteWords = words.filter((word) => !word.hasAudio)
   const currentWord = incompleteWords[currentWordIndex]
-  const completedCount = words.filter((w) => w.hasAudio && w.hasLabel).length
+  const completedCount = words.filter((w) => w.hasAudio).length
   const progressPercentage = (completedCount / words.length) * 100
 
   // Initialize current label when word changes
   useEffect(() => {
     if (currentWord) {
-      setCurrentLabel(currentWord.label || "")
+      setCurrentLabel(currentWord.categoryLabel || "")
     }
   }, [currentWord])
 
@@ -169,52 +82,7 @@ export function RecordingInterface({
   }
 
   const updateWordData = (wordId: string, updates: Partial<LexemeWord>) => {
-    setWords((prev) => prev.map((word) => (word.id === wordId ? { ...word, ...updates } : word)))
-  }
-
-  const saveLabel = () => {
-    if (currentWord && currentLabel.trim()) {
-      updateWordData(currentWord.id, {
-        hasLabel: true,
-        label: currentLabel.trim(),
-      })
-      setShowLabelInput(false)
-    }
-  }
-
-  const startEditingLabel = () => {
-    setEditingLabel(true)
-    setCurrentLabel(currentWord?.label || "")
-  }
-
-  const cancelEditingLabel = () => {
-    setEditingLabel(false)
-    setCurrentLabel(currentWord?.label || "")
-  }
-
-  const saveLabelEdit = () => {
-    if (currentWord && currentLabel.trim()) {
-      updateWordData(currentWord.id, {
-        hasLabel: true,
-        label: currentLabel.trim(),
-      })
-      setEditingLabel(false)
-    }
-  }
-
-  const openLabelModal = () => {
-    setCurrentLabel(currentWord?.label || "")
-    setIsLabelModalOpen(true)
-  }
-
-  const saveLabelModal = () => {
-    if (currentWord && currentLabel.trim()) {
-      updateWordData(currentWord.id, {
-        hasLabel: true,
-        label: currentLabel.trim(),
-      })
-      setIsLabelModalOpen(false)
-    }
+    setWords((prev) => prev.map((word) => (word.lexeme_id === wordId ? { ...word, ...updates } : word)))
   }
 
   const startRecording = async () => {
@@ -238,21 +106,78 @@ export function RecordingInterface({
         }
       }
 
-      mediaRecorder.onstop = () => {
+      mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/wav" })
         if (currentWord) {
-          updateWordData(currentWord.id, {
+          const duration = recordingTime;
+          updateWordData(currentWord.lexeme_id, {
             hasAudio: true,
             audioBlob,
           })
+          
+          // Convert blob to base64
+          const base64Data = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const base64 = (reader.result as string).split(',')[1];
+              resolve(base64);
+            };
+            reader.readAsDataURL(audioBlob);
+          });
+
+          // Create recording data and update recordings
+          const recordingData: RecordingData = {
+            lexeme_id: currentWord.lexeme_id,
+            formId: currentWord.formId,
+            lemma: currentWord.lemma,
+            audioBlob,
+            file_content: base64Data,
+            filename: `${currentWord.lexeme_id}-${currentWord.lang_code.toLowerCase()}-${currentWord.lemma}.ogg`,
+            isRecorded: true,
+            duration,
+            lang_label: currentWord.lang_label,
+            lang_wdqid: currentWord.lang_wdqid,
+            lang_code: currentWord.lang_code,
+            categoryId: currentWord.categoryId,
+            categoryLabel: currentWord.categoryLabel,
+            sense_id: currentWord.sense_id,
+            hasAudio: true
+          }
+          
+          if (setRecordings) {
+            // Get current recordings and add new one
+            const currentRecordings = externalRecordings || []
+            setRecordings([...currentRecordings, recordingData])
+          }
+
+          // Auto-advance to next word after a short delay
+          setTimeout(() => {
+            if (currentWordIndex < incompleteWords.length - 1) {
+              setCurrentWordIndex(currentWordIndex + 1)
+            }
+          }, 500)
         }
         stream.getTracks().forEach((track) => track.stop())
       }
 
       mediaRecorder.start()
 
+      // Stop recording after 15 seconds
+      setTimeout(() => {
+        if (mediaRecorderRef.current?.state === "recording") {
+          stopRecording()
+        }
+      }, 15000)
+
       recordingTimerRef.current = setInterval(() => {
-        setRecordingTime((prev) => prev + 0.1)
+        setRecordingTime((prev) => {
+          const newTime = prev + 0.1
+          // Stop recording if we reach 15 seconds
+          if (newTime >= 15) {
+            stopRecording()
+          }
+          return newTime
+        })
       }, 100)
     } catch (error) {
       console.error("Error starting recording:", error)
@@ -307,8 +232,10 @@ export function RecordingInterface({
         <div className="text-center">
           <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-500" />
           <h2 className="text-2xl font-semibold mb-4">All Done!</h2>
-          <p className="text-gray-600 mb-6">All lexemes have been completed.</p>
-          <Button onClick={ onComplete }>Continue to Review</Button>
+          <p className="text-gray-600 mb-6">All lexemes have been recorded.</p>
+          <div className="flex flex-col gap-4">
+            <Button onClick={onComplete} variant="outline">Review First</Button>
+          </div>
         </div>
       </div>
     )
@@ -347,7 +274,7 @@ export function RecordingInterface({
           <div className="p-2">
             { incompleteWords.map((word, index) => (
               <button
-                key={ word.id }
+                key={ word.formId }
                 onClick={ () => setCurrentWordIndex(index) }
                 className={ cn(
                   "w-full text-left p-3 rounded-lg mb-1 transition-colors",
@@ -356,34 +283,18 @@ export function RecordingInterface({
                 ) }
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-medium">{ word.word }</span>
+                  <span className="font-medium">{ word.lemma }</span>
                   <div className="flex items-center gap-1">
-                    { !word.hasAudio && <Mic className="w-3 h-3 text-orange-500" title="Needs audio" /> }
-                    { !word.hasLabel && <Tag className="w-3 h-3 text-blue-500" title="Needs label" /> }
+                    { !word.hasAudio && (
+                      <span title="Needs audio">
+                        <Mic className="w-3 h-3 text-orange-500" />
+                      </span>
+                    ) }
                     { index === currentWordIndex && (
                       <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" title="Current" />
                     ) }
                   </div>
                 </div>
-                { word.label && (
-                  <div className="text-xs text-gray-500 mt-1 truncate group">
-                    <span>{ word.label }</span>
-                    { word.hasLabel && index === currentWordIndex && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={ (e) => {
-                          e.stopPropagation()
-                          startEditingLabel()
-                        } }
-                        className="ml-1 h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="Edit label"
-                      >
-                        <Edit className="w-2 h-2" />
-                      </Button>
-                    ) }
-                  </div>
-                ) }
               </button>
             )) }
           </div>
@@ -394,7 +305,7 @@ export function RecordingInterface({
       <div className="flex-1 flex flex-col">
         {/* Header with controls */ }
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold">Record & Label</h2>
+          <h2 className="text-xl font-semibold">Record</h2>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon">
               <Settings className="w-5 h-5" />
@@ -410,18 +321,12 @@ export function RecordingInterface({
           <div className="text-center max-w-md w-full space-y-8">
             {/* Current Word Display */ }
             <div>
-              <h1 className="text-6xl font-bold text-gray-900 mb-4">{ currentWord.word }</h1>
+              <h1 className="text-6xl font-bold text-gray-900 mb-4">{ currentWord.lemma }</h1>
               <div className="flex items-center justify-center gap-4 mb-4">
                 { !currentWord.hasAudio && (
                   <div className="flex items-center gap-1 text-orange-600 bg-orange-50 px-3 py-1 rounded-full">
                     <Mic className="w-4 h-4" />
                     <span>Audio needed</span>
-                  </div>
-                ) }
-                { !currentWord.hasLabel && (
-                  <div className="flex items-center gap-1 text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
-                    <Tag className="w-4 h-4" />
-                    <span>Label needed</span>
                   </div>
                 ) }
               </div>
@@ -454,71 +359,12 @@ export function RecordingInterface({
               </div>
             ) }
 
-            {/* Label Input Section */ }
-            { (!currentWord.hasLabel || editingLabel) && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">{ currentWord.hasLabel ? "Edit Label" : "Add Label" }</h3>
-                { !showLabelInput && !editingLabel ? (
-                  <Button
-                    onClick={ () => setShowLabelInput(true) }
-                    variant="outline"
-                    size="lg"
-                    className="h-16 px-8 text-lg"
-                  >
-                    <Tag className="w-6 h-6 mr-2" />
-                    Add Label
-                  </Button>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="text-left">
-                      <Label htmlFor="label-input" className="text-sm font-medium">
-                        Definition or description
-                      </Label>
-                      <Input
-                        id="label-input"
-                        value={ currentLabel }
-                        onChange={ (e) => setCurrentLabel(e.target.value) }
-                        placeholder="Enter a definition or description for this word"
-                        className="mt-1"
-                        autoFocus
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <Button onClick={ editingLabel ? saveLabelEdit : saveLabel } disabled={ !currentLabel.trim() }>
-                        Save Label
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={ editingLabel ? cancelEditingLabel : () => setShowLabelInput(false) }
-                      >
-                        Cancel
-                      </Button>
-                      <Button variant="outline" onClick={ openLabelModal } className="ml-auto">
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Edit in Modal
-                      </Button>
-                    </div>
-                  </div>
-                ) }
-              </div>
-            ) }
-
             {/* Show existing label with edit option */ }
-            { currentWord.hasLabel && !editingLabel && !showLabelInput && (
+            { currentWord.categoryLabel && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Current Label</h3>
+                <h3 className="text-lg font-semibold">Category Label</h3>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-gray-700 mb-3">{ currentWord.label }</p>
-                  <div className="flex gap-2">
-                    <Button onClick={ startEditingLabel } variant="outline" size="sm">
-                      <Edit className="w-4 h-4 mr-2" />
-                      Edit Inline
-                    </Button>
-                    <Button onClick={ openLabelModal } variant="outline" size="sm">
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Edit in Modal
-                    </Button>
-                  </div>
+                  <p className="text-gray-700 mb-3">{ currentWord.categoryLabel }</p>
                 </div>
               </div>
             ) }
@@ -555,53 +401,6 @@ export function RecordingInterface({
           <Progress value={ progressPercentage } className="h-2" />
         </div>
       </div>
-
-      {/* Label Editing Modal */ }
-      { isLabelModalOpen && currentWord && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Edit Label</h3>
-              <Button variant="ghost" size="sm" onClick={ () => setIsLabelModalOpen(false) }>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium text-gray-700">Word</Label>
-                <p className="text-2xl font-semibold text-gray-900 mt-1">{ currentWord.word }</p>
-              </div>
-
-              <div>
-                <Label htmlFor="modal-label-input" className="text-sm font-medium text-gray-700">
-                  Definition or Description
-                </Label>
-                <textarea
-                  id="modal-label-input"
-                  value={ currentLabel }
-                  onChange={ (e) => setCurrentLabel(e.target.value) }
-                  placeholder="Enter a detailed definition or description for this word"
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-none"
-                  rows={ 5 }
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Provide a clear, concise definition that would help others understand this word.
-                </p>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4">
-                <Button variant="outline" onClick={ () => setIsLabelModalOpen(false) }>
-                  Cancel
-                </Button>
-                <Button onClick={ saveLabelModal } disabled={ !currentLabel.trim() }>
-                  Save Label
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) }
 
       {/* Keyboard Shortcuts Help Modal */ }
       { showKeyboardHelp && (

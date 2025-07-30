@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { Language } from '../types/api';
 
-interface LanguageState {
+export interface LanguageState {
   languages: Language[];
   selectedSourceLanguage: Language | null;
   selectedTargetLanguage1: Language | null;

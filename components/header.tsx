@@ -5,12 +5,14 @@ import { Menu, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useApiWithStore } from "@/hooks/useApiWithStore"
 import { useAuthStore } from "@/lib/stores/authStore"
+import type { AuthState } from '@/lib/stores/authStore';
+
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { login, logout } = useApiWithStore();
-  const token = useAuthStore(state => state.token);
-  const hydrate = useAuthStore(state => state.hydrate);
+  const token = useAuthStore((state: AuthState ) => state.token);
+  const hydrate = useAuthStore((state: AuthState ) => state.hydrate);
 
   useEffect(() => {
     hydrate();

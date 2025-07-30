@@ -11,26 +11,31 @@ import {
   AddAudioTranslationRequest,
   LoginResponse,
   OauthCallbackResponse,
+  LexemeMissingAudioResquest,
 } from '@/lib/types/api';
+// Import store state types
+import type { LanguageState } from '@/lib/stores/languageStore';
+import type { LexemeState } from '@/lib/stores/lexemeStore';
+import type { AuthState } from '@/lib/stores/authStore';
 
 export const useApiWithStore = () => {
   const { toast } = useToast();
-  const token = useAuthStore(state => state.token);
+  const token = useAuthStore((state: AuthState) => state.token);
   
   // Use individual selectors to avoid object recreation
-  const setLanguages = useLanguageStore(state => state.setLanguages);
-  const setSelectedSourceLanguage = useLanguageStore(state => state.setSelectedSourceLanguage);
-  const setSelectedTargetLanguage1 = useLanguageStore(state => state.setSelectedTargetLanguage1);
-  const setSelectedTargetLanguage2 = useLanguageStore(state => state.setSelectedTargetLanguage2);
-  const setLanguageLoading = useLanguageStore(state => state.setLoading);
-  const setLanguageError = useLanguageStore(state => state.setError);
+  const setLanguages = useLanguageStore((state: LanguageState) => state.setLanguages);
+  const setSelectedSourceLanguage = useLanguageStore((state: LanguageState) => state.setSelectedSourceLanguage);
+  const setSelectedTargetLanguage1 = useLanguageStore((state: LanguageState) => state.setSelectedTargetLanguage1);
+  const setSelectedTargetLanguage2 = useLanguageStore((state: LanguageState) => state.setSelectedTargetLanguage2);
+  const setLanguageLoading = useLanguageStore((state: LanguageState) => state.setLoading);
+  const setLanguageError = useLanguageStore((state: LanguageState) => state.setError);
   
-  const setLexemes = useLexemeStore(state => state.setLexemes);
-  const setQuery = useLexemeStore(state => state.setQuery);
-  const setSelectedLexeme = useLexemeStore(state => state.setSelectedLexeme);
-  const setClickedLexeme = useLexemeStore(state => state.setClickedLexeme);
-  const setLexemeLoading = useLexemeStore(state => state.setLoading);
-  const setLexemeError = useLexemeStore(state => state.setError);
+  const setLexemes = useLexemeStore((state: LexemeState) => state.setLexemes);
+  const setQuery = useLexemeStore((state: LexemeState) => state.setQuery);
+  const setSelectedLexeme = useLexemeStore((state: LexemeState) => state.setSelectedLexeme);
+  const setClickedLexeme = useLexemeStore((state: LexemeState) => state.setClickedLexeme);
+  const setLexemeLoading = useLexemeStore((state: LexemeState) => state.setLoading);
+  const setLexemeError = useLexemeStore((state: LexemeState) => state.setError);
 
   const getLanguages = useCallback(async () => {
     api.setAuthToken(token);
@@ -162,6 +167,27 @@ export const useApiWithStore = () => {
     }
   }, [setLexemeError, token]);
 
+  const getLexemeMissingAudio = useCallback(async (request: LexemeMissingAudioResquest) => {
+    setLexemeLoading(true);
+    setLexemeError(null);
+    try {
+      const result = await api.getLexemeMissingAudio(request);
+      // You may want to store this in a dedicated store if needed
+      return result;
+    } catch (error) {
+      const apiError = error as ApiError;
+      setLexemeError(apiError.message);
+      toast({
+        title: "Error loading missing audio lexemes",
+        description: apiError.message,
+        variant: "destructive",
+      });
+      throw apiError;
+    } finally {
+      setLexemeLoading(false);
+    }
+  }, [setLexemeLoading, setLexemeError, toast]);
+
   const login = useCallback(async () => {
     try {
       return await api.login();
@@ -191,7 +217,7 @@ export const useApiWithStore = () => {
     }
   }, [toast, token]);
 
-  const clearToken = useAuthStore(state => state.clearToken);
+  const clearToken = useAuthStore((state: AuthState ) => state.clearToken);
 
   const logout = useCallback(async () => {
     api.setAuthToken(token);
@@ -223,6 +249,7 @@ export const useApiWithStore = () => {
     getLexemeDetails,
     setQuery,
     setClickedLexeme,
+    getLexemeMissingAudio,
     
     // Auth actions
     login,
@@ -230,22 +257,22 @@ export const useApiWithStore = () => {
     logout,
     
     // State from stores
-    languages: useLanguageStore(state => state.languages),
-    selectedSourceLanguage: useLanguageStore(state => state.selectedSourceLanguage),
-    selectedTargetLanguage1: useLanguageStore(state => state.selectedTargetLanguage1),
-    selectedTargetLanguage2: useLanguageStore(state => state.selectedTargetLanguage2),
-    languageLoading: useLanguageStore(state => state.loading),
-    languageError: useLanguageStore(state => state.error),
+    languages: useLanguageStore((state: LanguageState) => state.languages),
+    selectedSourceLanguage: useLanguageStore((state: LanguageState) => state.selectedSourceLanguage),
+    selectedTargetLanguage1: useLanguageStore((state: LanguageState) => state.selectedTargetLanguage1),
+    selectedTargetLanguage2: useLanguageStore((state: LanguageState) => state.selectedTargetLanguage2),
+    languageLoading: useLanguageStore((state: LanguageState) => state.loading),
+    languageError: useLanguageStore((state: LanguageState) => state.error),
     
-    lexemes: useLexemeStore(state => state.lexemes),
-    query: useLexemeStore(state => state.query),
-    selectedLexeme: useLexemeStore(state => state.selectedLexeme),
-    clickedLexeme: useLexemeStore(state => state.clickedLexeme),
-    lexemeLoading: useLexemeStore(state => state.loading),
-    lexemeError: useLexemeStore(state => state.error),
+    lexemes: useLexemeStore((state: LexemeState) => state.lexemes),
+    query: useLexemeStore((state: LexemeState) => state.query),
+    selectedLexeme: useLexemeStore((state: LexemeState) => state.selectedLexeme),
+    clickedLexeme: useLexemeStore((state: LexemeState) => state.clickedLexeme),
+    lexemeLoading: useLexemeStore((state: LexemeState) => state.loading),
+    lexemeError: useLexemeStore((state: LexemeState) => state.error),
     
     // Reset functions
-    resetLanguageStore: useLanguageStore(state => state.reset),
-    resetLexemeStore: useLexemeStore(state => state.reset),
+    resetLanguageStore: useLanguageStore((state: LanguageState) => state.reset),
+    resetLexemeStore: useLexemeStore((state: LexemeState) => state.reset),
   };
 }; 

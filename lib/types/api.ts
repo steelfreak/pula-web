@@ -31,6 +31,8 @@ export interface Gloss {
   value: string;
   audio?: string;
   formId: string;
+  categoryid?: string;
+  categoryLabel?: string
 }
 
 export interface GlossWithSense {
@@ -54,7 +56,7 @@ export interface LexemeDetailResult {
 export interface ApiError {
   message: string;
   status?: number;
-} 
+}
 
 export interface AddLabeledTranslationRequest {
   lexeme_id: string;
@@ -66,12 +68,12 @@ export interface AddLabeledTranslationRequest {
 }
 
 export interface AddAudioTranslationRequest {
-  file_content: string; // base64-encoded audio
+  file_content: string;
   filename: string;
   formid: string;
   lang_label: string;
   lang_wdqid: string;
-}
+}[]
 
 export interface LoginResponse {
   redirect_string: string;
@@ -79,4 +81,20 @@ export interface LoginResponse {
 
 export interface OauthCallbackResponse {
   token: string;
+}
+
+export interface LexemeMissingAudioResponse {
+  lexeme_id: string,
+  sense_id: string,
+  lemma: string,
+  categoryId: string,
+  categoryLabel: string,
+  formId: string
+}
+
+export interface LexemeMissingAudioResquest {
+  lang_code: string,
+  lang_wdqid: string,
+  page: number | 1,
+  page_size: number | 15
 }
