@@ -79,7 +79,7 @@ jobs:
           rsync -Pav --no-perms --omit-dir-times -e "ssh -i id_rsa" .next/standalone/ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_REMOTE_PATH }}" --exclude='.next/standalone/cache' --exclude='.next/cache'
       - name: Restart Agpb
         run: |
-          echo ${{ vars.ENVIRONMENT }}
+          # echo ${{ vars.ENVIRONMENT }}
           ssh -i id_rsa "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" "cd ${{ secrets.SSH_REMOTE_PATH }} && pm2 restart ecosystem.config.js --update-env"
 
   deploy-toolforge:
@@ -109,7 +109,7 @@ jobs:
       - name: Restart Agpb
         run: |
           ssh -i id_rsa "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" <<EOF
-          become Agpb
+          become agpb
           toolforge build start https://github.com/${{ github.repository }} --ref build --use-latest-versions
           toolforge webservice buildservice restart --mount all
           exit
