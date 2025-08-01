@@ -42,14 +42,14 @@ build:
       - .next/standalone/
     expire_in: 1 hour
   environment: build
-  variables:
-    SENTRY_AUTH_TOKEN: $SENTRY_AUTH_TOKEN
-    SENTRY_ORG: $SENTRY_ORG
-    SENTRY_PROJECT: $SENTRY_PROJECT
-    NEXT_PUBLIC_SENTRY_DSN: $NEXT_PUBLIC_SENTRY_DSN
+  # variables:
+  #   SENTRY_AUTH_TOKEN: $SENTRY_AUTH_TOKEN
+  #   SENTRY_ORG: $SENTRY_ORG
+  #   SENTRY_PROJECT: $SENTRY_PROJECT
+  #   NEXT_PUBLIC_SENTRY_DSN: $NEXT_PUBLIC_SENTRY_DSN
 
 # Deploy template for Toolforge
-.deploy_template: &deploy_template
+deploy_template: &deploy_template
   image: alpine:latest
   dependencies:
     - build

@@ -57,30 +57,33 @@ jobs:
           path: ./.next/standalone
           include-hidden-files: true
 
-  deploy-test:
-    runs-on: ubuntu-latest
-    needs: build
-    environment: Test
-    steps:
-      - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build
-          path: ./.next/standalone
+  # deploy-test:
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   environment: Test
+  #   steps:
+  #     - name: Download Build Artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: build
+  #         path: ./.next/standalone
 
-      - name: Setup Deployment Environment
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > id_rsa
-          chmod 600 id_rsa
-      - name: Send Build to Server
-        run: |
-          rsync -Pav --no-perms --omit-dir-times -e "ssh -i id_rsa" .next/standalone/ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_REMOTE_PATH }}" --exclude='.next/standalone/cache' --exclude='.next/cache'
-      - name: Restart Agpb
-        run: |
-          echo ${{ vars.ENVIRONMENT }}
-          ssh -i id_rsa "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" "cd ${{ secrets.SSH_REMOTE_PATH }} && pm2 restart ecosystem.config.js --update-env"
+  #     - name: Setup Deployment Environment
+  #       run: |
+  #         mkdir -p ~/.ssh
+  #         ssh-keyscan ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+  #         echo "${{ secrets.SSH_PRIVATE_KEY }}" > id_rsa
+  #         chmod 600 id_rsa
+  #     - name: Send Build to Server
+  #       run: |
+  #         rsync -Pav --no-perms --omit-dir-times --delete -e "ssh -i id_rsa" .next/standalone/ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_REMOTE_PATH }}" --exclude='.next/standalone/cache' --exclude='.next/cache'
+  #     - name: Restart Agpb
+  #       run: |
+  #         # echo ${{ vars.ENVIRONMENT }}
+  #         ssh -i id_rsa "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" "cd ${{ secrets.SSH_REMOTE_PATH }} && pm2 restart ecosystem.config.js --update-env"
+  #     - name: Remove SSH Private Key
+  #       if: always()
+  #       run: rm -f id_rsa
 
   deploy-toolforge:
     runs-on: ubuntu-latest
@@ -96,8 +99,8 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > id_rsa
-          chmod 600 id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > id_ed25519
+          chmod 600 id_ed25519
       - name: Push to Distribution branch
         uses: s0/git-publish-subdir-action@develop
         env:
@@ -108,10 +111,10 @@ jobs:
           MESSAGE: "Build: ({sha}) {msg}" # The commit message
       - name: Restart Agpb
         run: |
-          ssh -i id_rsa "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" <<EOF
-          become Agpb
-          toolforge build start https://github.com/${{ github.repository }} --ref build --use-latest-versions
-          toolforge webservice buildservice restart --mount all
-          exit
-          exit
+          ssh -i id_ed25519 "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" <<'EOF'
+            become agpb
+            toolforge build start git@github.com:${{ secrets.MY_GITHUB_USER }}/${{ github.repository }} --ref build --use-latest-versions
+            toolforge webservice buildservice restart --mount all
+            exit
+            exit
           EOF
