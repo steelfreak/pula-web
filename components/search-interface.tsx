@@ -36,7 +36,7 @@ export default function SearchInterface() {
   }, []);
 
   useEffect(() => {
-    console.log("clickedLexeme", clickedLexeme);
+    // console.log("clickedLexeme", clickedLexeme);
     if (clickedLexeme) {
       router.push(`/results/${encodeURIComponent(clickedLexeme.id)}`);
     }
