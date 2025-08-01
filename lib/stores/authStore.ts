@@ -5,11 +5,12 @@ export const TOKEN_KEY = 'auth_token';
 export interface AuthState {
   token: string | null;
   username: string;
-  setToken: (token: string) => void; 
+  setToken: (token: string) => void;
   clearToken: () => void;
   hydrate: () => void;
   setUsername: (username: string) => void;
   hydrateUsername: () => void;
+  clearUsername: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set: any) => ({
@@ -41,6 +42,13 @@ export const useAuthStore = create<AuthState>((set: any) => ({
     if (typeof window !== 'undefined') {
       const storedUsername = localStorage.getItem('username');
       if (storedUsername) set({ username: storedUsername });
+    }
+  },
+
+  clearUsername: () => {
+    set({ username: '' });
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('username');
     }
   },
 })); 

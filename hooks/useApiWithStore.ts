@@ -200,10 +200,17 @@ export const useApiWithStore = () => {
     }
   }, [toast]);
 
+  const setUsername = useAuthStore((state: AuthState) => state.setUsername);
+
   const oauthCallback = useCallback(async (oauth_verifier: string, oauth_token: string, username: string) => {
     api.setAuthToken(token);
     try {
-      return await api.oauthCallback(oauth_verifier, oauth_token, username);
+      const response = await api.oauthCallback(oauth_verifier, oauth_token, username);
+      if (response.token) {
+        // Store the username when we get a successful token
+        setUsername(username);
+      }
+      return response;
     } catch (error) {
       const apiError = error as ApiError;
       toast({
@@ -213,15 +220,18 @@ export const useApiWithStore = () => {
       });
       throw apiError;
     }
-  }, [toast, token]);
+  }, [toast, token, setUsername]);
 
   const clearToken = useAuthStore((state: AuthState ) => state.clearToken);
+
+  const clearUsername = useAuthStore((state: AuthState) => state.clearUsername);
 
   const logout = useCallback(async () => {
     api.setAuthToken(token);
     try {
       await api.logout();
       clearToken();
+      clearUsername();
     } catch (error) {
       const apiError = error as ApiError;
       toast({
@@ -231,7 +241,7 @@ export const useApiWithStore = () => {
       });
       throw apiError;
     }
-  }, [toast, token, clearToken]);
+  }, [toast, token, clearToken, clearUsername]);
 
   return {
     addLabeledTranslation,

@@ -19,6 +19,13 @@ export default function Header() {
     hydrate();
   }, [hydrate]);
 
+  useEffect(() => {
+    // Re-hydrate when token changes
+    if (token) {
+      hydrate();
+    }
+  }, [token, hydrate]);
+
   const handleLogin = async () => {
     const data: { redirect_string: string } = await login();
     if (data.redirect_string) {

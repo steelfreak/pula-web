@@ -9,7 +9,6 @@ import { WikimediaCategoryModal, type WikimediaCategoryData } from "@/components
 import { EnhancedWordListManager } from "@/components/contribution/enhanced-word-list-manager"
 import { RecordingInterface } from "@/components/contribution/recording-interface"
 import { ReviewInterface } from "@/components/contribution/review-interface"
-import LanguageSelect from "@/components/language-select"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import { Toaster } from "@/components/ui/toaster"
