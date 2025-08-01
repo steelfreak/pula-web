@@ -202,10 +202,10 @@ export const useApiWithStore = () => {
     }
   }, [toast]);
 
-  const oauthCallback = useCallback(async (oauth_verifier: string, oauth_token: string) => {
+  const oauthCallback = useCallback(async (oauth_verifier: string, oauth_token: string, username: string) => {
     api.setAuthToken(token);
     try {
-      return await api.oauthCallback(oauth_verifier, oauth_token);
+      return await api.oauthCallback(oauth_verifier, oauth_token, username);
     } catch (error) {
       const apiError = error as ApiError;
       toast({

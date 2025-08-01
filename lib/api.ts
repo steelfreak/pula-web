@@ -177,9 +177,9 @@ class ApiClient {
   /**
    * OAuth callback: Exchange verifier/token for app token
    */
-  async oauthCallback(oauth_verifier: string, oauth_token: string): Promise<OauthCallbackResponse> {
+  async oauthCallback(oauth_verifier: string, oauth_token: string, username: string): Promise<OauthCallbackResponse> {
     try {
-      const response: AxiosResponse<OauthCallbackResponse> = await this.client.get(`/oauth-callback?oauth_verifier=${encodeURIComponent(oauth_verifier)}&oauth_token=${encodeURIComponent(oauth_token)}`);
+      const response: AxiosResponse<OauthCallbackResponse> = await this.client.get(`/oauth-callback?oauth_verifier=${encodeURIComponent(oauth_verifier)}&oauth_token=${encodeURIComponent(oauth_token)}&username=${encodeURIComponent(username)}`);
       return response.data;
     } catch (error) {
       throw error as ApiError;
@@ -224,7 +224,7 @@ export const api = {
   addLabeledTranslation: (request: AddLabeledTranslationRequest[]) => apiClient.addLabeledTranslation(request),
   addAudioTranslation: (request: AddAudioTranslationRequest[]) => apiClient.addAudioTranslation(request),
   login: () => apiClient.login(),
-  oauthCallback: (oauth_verifier: string, oauth_token: string) => apiClient.oauthCallback(oauth_verifier, oauth_token),
+  oauthCallback: (oauth_verifier: string, oauth_token: string, username: string) => apiClient.oauthCallback(oauth_verifier, oauth_token, username),
   logout: () => apiClient.logout(),
   setAuthToken: (token: string | null) => apiClient.setAuthToken(token),
   getLexemeMissingAudio: (request: LexemeMissingAudioResquest) => apiClient.getLexemeMissingAudio(request),
