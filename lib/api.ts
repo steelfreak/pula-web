@@ -28,7 +28,7 @@ class ApiClient {
       headers: {
         'Content-Type': 'application/json',
       },
-      withCredentials: true,
+      withCredentials: true
     });
 
     // Add response interceptor for error handling
