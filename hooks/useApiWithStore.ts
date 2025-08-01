@@ -9,8 +9,6 @@ import {
   ApiError,
   AddLabeledTranslationRequest,
   AddAudioTranslationRequest,
-  LoginResponse,
-  OauthCallbackResponse,
   LexemeMissingAudioResquest,
 } from '@/lib/types/api';
 // Import store state types

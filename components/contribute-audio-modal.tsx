@@ -13,7 +13,6 @@ import { Mic, Square, Play, RotateCcw } from "lucide-react";
 import { WaveformVisualizer } from "./contribution/waveform-visualizer";
 import { AddAudioTranslationRequest, Language } from "@/lib/types/api";
 import { useApiWithStore } from "@/hooks/useApiWithStore";
-import { base64ToPythonByteLiteral, blobToBase64 } from "@/lib/utils";
 import { generateAudioFilename } from "@/utils/label-validation";
 
 interface ContributeModalProps {
@@ -39,8 +38,7 @@ export default function ContributeAudioModal({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { selectedLexeme, addAudioTranslation } = useApiWithStore();
   const [audioBase64, setAudioBase64] = useState<string | null>(null);
-  const audioChunksRef = useRef<Blob[]>([])
-
+  const audioChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
     if (isRecording) {
@@ -73,7 +71,8 @@ export default function ContributeAudioModal({
       // timer will be started by useEffect when isRecording becomes true
 
       audioChunksRef.current = [];
-      mediaRecorder.ondataavailable = (e) => audioChunksRef.current.push(e.data);
+      mediaRecorder.ondataavailable = (e) =>
+        audioChunksRef.current.push(e.data);
       mediaRecorder.onstop = async () => {
         const blob = new Blob(audioChunksRef.current, { type: "audio/ogg" });
         setAudioBlob(blob);
@@ -82,7 +81,7 @@ export default function ContributeAudioModal({
         const base64Data = await new Promise<string>((resolve) => {
           const reader = new FileReader();
           reader.onloadend = () => {
-            const base64 = (reader.result as string).split(',')[1];
+            const base64 = (reader.result as string).split(",")[1];
             resolve(base64);
           };
           reader.readAsDataURL(blob);
@@ -141,48 +140,54 @@ export default function ContributeAudioModal({
     const lexemeId = selectedLexeme?.lexeme?.id || "";
     const destinationLanguageCode = language?.lang_code || "";
     const label = selectedLexeme?.glosses[0]?.gloss.value || "";
-    const filename = generateAudioFilename(lexemeId, destinationLanguageCode, label);
+    const filename = generateAudioFilename(
+      lexemeId,
+      destinationLanguageCode,
+      label
+    );
 
-    const request: AddAudioTranslationRequest[] = [{
-      file_content: audioBase64,
-      filename: filename,
-      formid: selectedLexeme?.glosses[0]?.gloss.formId || "",
-      lang_label: language?.lang_label || "",
-      lang_wdqid: language?.lang_wd_id || "",
-    }];
-    console.log("Creating audio translation", request);
+    const request: AddAudioTranslationRequest[] = [
+      {
+        file_content: audioBase64,
+        filename: filename,
+        formid: selectedLexeme?.glosses[0]?.gloss.formId || "",
+        lang_label: language?.lang_label || "",
+        lang_wdqid: language?.lang_wd_id || "",
+      },
+    ];
+    // console.log("Creating audio translation", request);
     const response = await addAudioTranslation(request);
-    console.log("Audio translation created", response);
+    // console.log("Audio translation created", response);
     onSuccess?.();
   };
 
   return (
-    <Dialog open={ open } onOpenChange={ onOpenChange }>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Voice Contribution</DialogTitle>
           <DialogDescription>
-            Record your voice to help improve our translations for{ " " }
-            { language ? language.lang_label : "the language" }.
+            Record your voice to help improve our translations for{" "}
+            {language ? language.lang_label : "the language"}.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
           <div className="flex justify-center items-center space-x-4">
-            { !isRecording && !audioBlob && (
+            {!isRecording && !audioBlob && (
               <Button
-                onClick={ startRecording }
+                onClick={startRecording}
                 size="lg"
                 className="h-16 w-16 rounded-full"
               >
                 <Mic className="h-8 w-8" />
               </Button>
-            ) }
+            )}
 
-            { isRecording && (
+            {isRecording && (
               <>
                 <Button
-                  onClick={ stopRecording }
+                  onClick={stopRecording}
                   size="lg"
                   variant="destructive"
                   className="h-16 w-16 rounded-full"
@@ -190,27 +195,27 @@ export default function ContributeAudioModal({
                   <Square className="h-8 w-8" />
                 </Button>
                 <WaveformVisualizer
-                  isRecording={ isRecording }
-                  audioStream={ audioStream! }
+                  isRecording={isRecording}
+                  audioStream={audioStream!}
                   className="ml-4 w-48 h-16"
                 />
                 <span className="ml-4 text-lg font-mono tabular-nums">
-                  { recordingTime }s
+                  {recordingTime}s
                 </span>
               </>
-            ) }
+            )}
 
-            { audioBlob && !isRecording && !isPlaying && (
+            {audioBlob && !isRecording && !isPlaying && (
               <>
                 <Button
-                  onClick={ playRecording }
+                  onClick={playRecording}
                   size="lg"
                   className="h-16 w-16 rounded-full"
                 >
                   <Play className="h-8 w-8" />
                 </Button>
                 <Button
-                  onClick={ resetRecording }
+                  onClick={resetRecording}
                   size="lg"
                   variant="outline"
                   className="h-16 w-16 rounded-full"
@@ -218,24 +223,24 @@ export default function ContributeAudioModal({
                   <RotateCcw className="h-8 w-8" />
                 </Button>
               </>
-            ) }
+            )}
 
-            { audioBlob && isPlaying && !isRecording && (
+            {audioBlob && isPlaying && !isRecording && (
               <audio
                 controls
                 autoPlay
-                src={ URL.createObjectURL(audioBlob) }
-                onEnded={ () => setIsPlaying(false) }
+                src={URL.createObjectURL(audioBlob)}
+                onEnded={() => setIsPlaying(false)}
                 className="w-full"
               />
-            ) }
+            )}
           </div>
 
           <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={ () => onOpenChange(false) }>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button onClick={ handleSubmit } disabled={ !audioBlob }>
+            <Button onClick={handleSubmit} disabled={!audioBlob}>
               Submit
             </Button>
           </div>
