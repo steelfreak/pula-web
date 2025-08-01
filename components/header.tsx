@@ -12,6 +12,7 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { login, logout } = useApiWithStore();
   const token = useAuthStore((state: AuthState ) => state.token);
+  const username = useAuthStore((state: AuthState) => state.username);
   const hydrate = useAuthStore((state: AuthState ) => state.hydrate);
 
   useEffect(() => {
@@ -82,11 +83,11 @@ export default function Header() {
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">
-            {token ? (
+            {username ? (
               <div className="flex items-center space-x-2">
               <User className="w-5 h-5" style={{ color: "#72777d" }} />
               <span className="text-sm font-medium" style={{ color: "#222222" }}>
-                {useAuthStore((state: AuthState) => state?.username)}
+                {username}
               </span>
               </div>
             ) : (
