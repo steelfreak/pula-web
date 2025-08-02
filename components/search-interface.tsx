@@ -36,7 +36,6 @@ export default function SearchInterface() {
   }, []);
 
   useEffect(() => {
-    // console.log("clickedLexeme", clickedLexeme);
     if (clickedLexeme) {
       router.push(`/results/${encodeURIComponent(clickedLexeme.id)}`);
     }
@@ -52,15 +51,6 @@ export default function SearchInterface() {
       });
       return;
     }
-
-    // if (query) {
-    // console.log("query", query);
-    // console.log("searchQuery", searchQuery);
-    // return;
-    // console.log("clickedLexeme", clickedLexeme)
-    // return;
-    // router.push(`/results/${encodeURIComponent(query)}`)
-    // }
   };
 
   return (

@@ -136,7 +136,6 @@ export const useApiWithStore = () => {
 
     try {
       const response = await api.addLabeledTranslation(request);
-      console.log("response", response);
       return response;
     } catch (error) {
       const apiError = error as ApiError;
@@ -154,7 +153,6 @@ export const useApiWithStore = () => {
 
     try {
       const response = await api.addAudioTranslation(request);
-      console.log("response", response);
       return response;
     } catch (error) {
       const apiError = error as ApiError;

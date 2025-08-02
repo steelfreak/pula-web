@@ -37,7 +37,6 @@ class ApiClient {
       (error) => {
         let errorMessage = 'An error occurred';
         let status = error.response?.status;
-        console.log(error);
         // Handle different types of errors
         if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
           errorMessage = 'Network error: Unable to connect to the server. Please check your connection.';

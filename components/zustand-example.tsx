@@ -57,7 +57,6 @@ export const ZustandExample = () => {
       return;
     }
     
-    console.log(">>>>> >>>>> selectedSourceLanguage", selectedSourceLanguage);
     getLexemeDetails();
   };
 

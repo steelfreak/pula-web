@@ -63,7 +63,6 @@ export default function ContributeLabelModal({
     const results = await api.searchLexemes(request);
     setLexemes(results);
     setHasSelectedLexeme(false);
-    console.log("lexemes zzzz", results);
   };
 
   useEffect(() => {

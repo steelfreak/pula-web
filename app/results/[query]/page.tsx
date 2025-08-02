@@ -76,35 +76,11 @@ export default function ResultsPage({
     hydrate();
   }, [hydrate]);
 
-  // const handleSearch = useCallback(
-  //   async (searchQuery: string) => {
-  //     return;
-  //     if (!selectedSourceLanguage) return;
-
-  //     try {
-  //       await searchLexemes({
-  //         ismatch: 0,
-  //         search: searchQuery,
-  //         src_lang: selectedSourceLanguage.lang_code,
-  //       });
-  //     } catch (error) {
-  //       console.error("Search failed:", error);
-  //     }
-  //   },
-  //   [selectedSourceLanguage?.lang_code]
-  // );
 
   useEffect(() => {
     getLanguages();
   }, []);
 
-  // Search for lexemes when component mounts or query changes
-  // useEffect(() => {
-  //   if (query && selectedSourceLanguage?.lang_code) {
-  //     console.log(">>>> query", query);
-  //     handleSearch(query);
-  //   }
-  // }, [query, selectedSourceLanguage?.lang_code]);
 
   useEffect(() => {
     if (clickedLexeme && clickedLexeme.id) {
@@ -177,7 +153,6 @@ export default function ResultsPage({
     if (!language) {
       return;
     }
-    console.log("handleContribute", type, language);
     setOpen(true);
     setContributingLanguage(language);
     setContributingType(type);
