@@ -143,11 +143,11 @@ export default function ContributeAudioModal({
       // Generate filename using the utility function
       const lexemeId = selectedLexeme?.lexeme?.id || "";
       const destinationLanguageCode = language?.lang_code || "";
-      const label = selectedLexeme?.glosses[0]?.gloss.value || "";
+      const destinationLanguageLexemeLabel = selectedLexeme?.glosses.find((gl: any) => gl.gloss.language === destinationLanguageCode)?.gloss.value || "";
       const filename = generateAudioFilename(
         lexemeId,
         destinationLanguageCode,
-        label
+        destinationLanguageLexemeLabel
       );
 
       const request: AddAudioTranslationRequest[] = [
