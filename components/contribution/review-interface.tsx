@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Play, Pause, Trash2, Download, Upload, Keyboard, X } from "lucide-react"
 import { useApiWithStore } from "@/hooks/useApiWithStore";
 import type { RecordingData } from '@/types/recording'
+import Spinner from "../spinner"
 
 interface ReviewInterfaceProps {
   recordings: RecordingData[]
@@ -25,6 +26,8 @@ export function ReviewInterface({ recordings, onSubmit }: ReviewInterfaceProps) 
 
   const recordedItems = recordings.filter((r) => r.isRecorded)
   const totalDuration = recordedItems.reduce((sum, r) => sum + (r.duration || 0), 0)
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -179,6 +182,7 @@ export function ReviewInterface({ recordings, onSubmit }: ReviewInterfaceProps) 
 
   const handleSubmitRecordings = async () => {
     try {
+      setIsSubmitting(true);
       const toSubmit = recordedItems.filter((_, idx) => 
         selectedRecordings.includes(idx) && !deletedIndices.includes(idx)
       );
@@ -220,8 +224,11 @@ export function ReviewInterface({ recordings, onSubmit }: ReviewInterfaceProps) 
       // Submit all recordings in a single request
       await addAudioTranslation(submissions);
       onSubmit();
+      setIsSubmitting(false);
     } catch (error) {
       console.error('Error submitting recordings:', error);
+      setIsSubmitting(false);
+      // Optionally, you can show an error message to the user
       // Handle error - show error message to the user
     }
   }
@@ -369,7 +376,7 @@ export function ReviewInterface({ recordings, onSubmit }: ReviewInterfaceProps) 
           </Button>
           <Button onClick={handleSubmitRecordings} disabled={recordedItems.length === 0} className="px-8">
             <Upload className="w-4 h-4 mr-2" />
-            Submit Recordings
+            <Spinner loading={isSubmitting} content={isSubmitting ? "Uploading..." : "Submit Recordings"} />
             <span className="ml-2 text-sm opacity-75">(Ctrl+Enter)</span>
           </Button>
         </div>

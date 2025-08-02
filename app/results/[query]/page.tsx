@@ -213,7 +213,7 @@ export default function ResultsPage({
                     } }
                     placeholder="Select target language 1"
                     label="Target Language 1"
-                    require="*"
+                    span="*"
                   />
                   <LanguageSelect
                     value={ selectedTargetLanguage2?.lang_code || "" }
@@ -225,7 +225,7 @@ export default function ResultsPage({
                   } }
                   placeholder="Select target language 2"
                   label="Target Language 2"
-                  require="*"
+                  span="*"
                 />
               </div>
             </div>

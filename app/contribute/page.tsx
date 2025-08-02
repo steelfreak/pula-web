@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Spinner } from "@/components/ui/spinner"
 import { LogOut, ChevronLeft, ChevronRight, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { WikimediaCategoryModal, type WikimediaCategoryData } from "@/components/contribution/wikimedia-category-modal"
@@ -27,7 +26,7 @@ import type { RecordingData, WordListItem, LanguageData } from '@/types/recordin
 
 export default function ContributePage() {
   // API hooks
-  const { getLexemeMissingAudio, searchLexemes, languages, languageLoading, languageError } = useApiWithStore()
+  const { getLexemeMissingAudio, searchLexemes, languages } = useApiWithStore()
 
   // State
   const [currentStep, setCurrentStep] = useState(1)
@@ -96,37 +95,10 @@ export default function ContributePage() {
     console.warn("Wikimedia category handling should be implemented with proper API integration")
   }
 
-  // // Handle manual search/add (optional, if you want to support searchLexemes)
-  // const handleManualAdd = async (search: string) => {
-  //   if (!selectedLanguage) return;
-  //   try {
-  //     const results: LexemeSearchResult[] = await searchLexemes({
-  //       ismatch: 1,
-  //       search,
-  //       src_lang: selectedLanguage.lang_code || "",
-  //     })
-  //     // Map and add to word list - assuming we fetch full details for each lexeme
-  //     // In practice, you might need to fetch additional details for each lexeme
-  //     const mapped: WordListItem[] = results.map((item) => ({
-  //       lexeme_id: item.id,
-  //       formId: `${item.id}-F1`, // You might need to fetch the actual form ID
-  //       lemma: item.label,
-  //       categoryId: "",
-  //       categoryLabel: item.description || "",
-  //       sense_id: item.sense_id, // You might need to fetch the actual sense ID
-  //       hasAudio: false,
-  //       lang_label: selectedLanguage.lang_label,
-  //       lang_wdqid: selectedLanguage.lang_wd_id || ""
-  //     }))
-  //     setWordList((prev) => [...prev, ...mapped])
-  //   } catch (err: any) {
-  //     setLexemeApiError(err.message || "Failed to search lexemes")
-  //   }
-  // }
-
   // Search handler for SearchInput in EnhancedWordListManager
   const handleWordSearch = async (query: string) => {
     if (!selectedLanguage || !query.trim()) return
+    setLoadingWords(true)
     try {
       const results: LexemeSearchResult[] = await searchLexemes({
         ismatch: 0,
@@ -153,6 +125,8 @@ export default function ContributePage() {
     } catch (err) {
       // Optionally handle error
       console.error("Error searching words:", err)
+    } finally {
+      setLoadingWords(false)
     }
   }
 
@@ -222,15 +196,10 @@ export default function ContributePage() {
                 Refresh
               </Button>
             </div>
-            {loadingWords && (
-              <div className="flex items-center gap-2 text-blue-600 mb-2">
-                <Spinner size="sm" />
-                <span>Loading words...</span>
-              </div>
-            )}
             {lexemeApiError && <div className="text-red-600 mb-2">{lexemeApiError}</div>}
             <EnhancedWordListManager
               words={wordList}
+              loadingWords={loadingWords}
               onWordsChange={(lexemeWords) => {
                 // Map LexemeWord[] to WordListItem[]
                 const mapped = lexemeWords.map((item: any) => ({

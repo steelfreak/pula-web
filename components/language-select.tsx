@@ -10,7 +10,7 @@ interface LanguageSelectProps {
   onChange: (value: string) => void;
   placeholder?: string;
   label?: string;
-  require?: string;
+  span?: string;
 }
 
 export default function LanguageSelect({
@@ -18,7 +18,7 @@ export default function LanguageSelect({
   onChange,
   placeholder = "Select language",
   label,
-  require,
+  span,
 }: LanguageSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -80,13 +80,16 @@ export default function LanguageSelect({
             >
               <span>{label}</span>
             </label>
+            {span && (
+              <span
+                className="text-sm text-red-500 ml-1"
+                style={{ color: "#f50303" }}
+              >
+                <span>{span}</span>
+              </span>
+            )}
             <Spinner loading={loading} />
           </>
-        )}
-        {require && (
-          <span className="ml-2" style={{ color: "#f50303" }}>
-            {require}
-          </span>
         )}
       </div>
       <div className="relative" ref={selectRef}>
