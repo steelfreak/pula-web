@@ -89,7 +89,8 @@ export default function SearchInterface() {
               setSelectedTargetLanguage1(language || null);
             }}
             placeholder="Select target language 1"
-            label="Target Language 1 *"
+            label="Target Language 1"
+            span="*"
           />
           <LanguageSelect
             value={selectedTargetLanguage2?.lang_code || ""}
@@ -100,7 +101,8 @@ export default function SearchInterface() {
               setSelectedTargetLanguage2(language || null);
             }}
             placeholder="Select target language 2"
-            label="Target Language 2 *"
+            label="Target Language 2"
+            span="*"
           />
         </div>
       </div>
