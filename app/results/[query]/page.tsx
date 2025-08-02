@@ -183,33 +183,17 @@ export default function ResultsPage({
     setContributingType(type);
   };
 
-  // useEffect(() => {
-  //   toast({
-  //     title: "Success",
-  //     description: "Contribution saved successfully",
-  //     variant: 'success',
-  //     duration: 3000,
-  //     // position: 'top-right',
-  //   });
-  // }, []);
-
   const onContributeSuccess = async () => {
     // toast success
     toast({
-      title: "Success",
-      description: "Contribution saved successfully",
+      title: "Contribution saved",
+      description: "Thank you for your contribution. We appreciate your help!",
       variant: 'success',
       duration: 3000,
+      position: 'top-right',
     });
     await getLexemeDetails();
   };
-
-  // Auto-select first lexeme if available
-  // useEffect(() => {
-  //   if (lexemes && lexemes.length > 0 && !sourceLexemeDetails) {
-  //     handleGetLexemeDetails(lexemes[0].id);
-  //   }
-  // }, [lexemes, sourceLexemeDetails, handleGetLexemeDetails]);
 
   return (
     <div

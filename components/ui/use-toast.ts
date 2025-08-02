@@ -3,7 +3,7 @@
 // Inspired by react-hot-toast library
 import * as React from "react"
 
-import type { ToastActionElement, ToastProps } from "@/components/ui/toast"
+import type { ToastActionElement, ToastProps, ToastPosition } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
@@ -13,6 +13,7 @@ type ToasterToast = ToastProps & {
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
+  position?: ToastPosition
 }
 
 const actionTypes = {
@@ -137,6 +138,15 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">
 
+/**
+ * Toast function that accepts position parameter
+ * @example
+ * toast({
+ *   title: "Success!",
+ *   description: "Your action was completed successfully.",
+ *   position: "top-right" // or "top-left", "top-center", "bottom-left", "bottom-center", "bottom-right"
+ * })
+ */
 function toast({ ...props }: Toast) {
   const id = genId()
 
