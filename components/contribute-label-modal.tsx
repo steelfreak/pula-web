@@ -55,6 +55,10 @@ export default function ContributeLabelModal({
   };
 
   const getLexemes = async () => {
+    if (!language || !language.lang_code) {
+      return;
+    }
+    
     const request: LexemeSearchRequest = {
       ismatch: 1,
       search: query,
