@@ -15,6 +15,7 @@ import {
 import type { LanguageState } from '@/lib/stores/languageStore';
 import type { LexemeState } from '@/lib/stores/lexemeStore';
 import type { AuthState } from '@/lib/stores/authStore';
+import { LIST_OF_LANGUAGES, LIST_OF_LEXEMES, SELECTED_LEXEME } from '@/utils/constants';
 
 export const useApiWithStore = () => {
   const { toast } = useToast();
@@ -35,6 +36,9 @@ export const useApiWithStore = () => {
   const setLexemeLoading = useLexemeStore((state: LexemeState) => state.setLoading);
   const setLexemeError = useLexemeStore((state: LexemeState) => state.setError);
 
+  /**
+   * Get the list of languages from the API and store it in the store and local storage
+   */
   const getLanguages = useCallback(async () => {
     api.setAuthToken(token);
     setLanguageLoading(true);
@@ -43,6 +47,7 @@ export const useApiWithStore = () => {
     try {
       const languages = await api.getLanguages();
       setLanguages(languages);
+      localStorage.setItem(LIST_OF_LANGUAGES, JSON.stringify(languages));
       return languages;
     } catch (error) {
       const apiError = error as ApiError;
@@ -61,6 +66,9 @@ export const useApiWithStore = () => {
     }
   }, [setLanguages, setLanguageLoading, setLanguageError, toast]);
 
+  /**
+   * Search for lexemes and store them in the store and local storage
+   */
   const searchLexemes = useCallback(async (request: LexemeSearchRequest) => {
     setLexemeLoading(true);
     setLexemeError(null);
@@ -69,6 +77,7 @@ export const useApiWithStore = () => {
     try {
       const lexemes = await api.searchLexemes(request);
       setLexemes(lexemes);
+      localStorage.setItem(LIST_OF_LEXEMES, JSON.stringify(lexemes));
       return lexemes;
     } catch (error) {
       const apiError = error as ApiError;
@@ -88,6 +97,9 @@ export const useApiWithStore = () => {
     }
   }, [setLexemes, setQuery, setLexemeLoading, setLexemeError, toast]);
 
+  /**
+   * Get the details of a lexeme and store it in the store and local storage
+   */
   const getLexemeDetails = useCallback(async () => {
     setLexemeLoading(true);
     setLexemeError(null);
@@ -110,11 +122,14 @@ export const useApiWithStore = () => {
     
     try {
       const details = await api.getLexemeDetails(request);
+      localStorage.setItem(SELECTED_LEXEME, JSON.stringify(details));
       setSelectedLexeme(details);
       return details;
     } catch (error) {
       const apiError = error as ApiError;
       setLexemeError(apiError.message);
+      setSelectedLexeme(null);
+      localStorage.removeItem(SELECTED_LEXEME);
       
       // Show toast notification for error
       toast({
@@ -129,6 +144,9 @@ export const useApiWithStore = () => {
     }
   }, [setSelectedLexeme, setLexemeLoading, setLexemeError, toast]);
 
+  /**
+   * Add a labeled translation to a lexeme and store it in the store and local storage
+   */
   const addLabeledTranslation = useCallback(async (request: AddLabeledTranslationRequest[]) => {
     api.setAuthToken(token);
     setLexemeLoading(true);
@@ -146,6 +164,9 @@ export const useApiWithStore = () => {
     }
   }, [setLexemeError, setLexemeLoading, token]);
 
+  /**
+   * Add an audio translation to a lexeme and store it in the store and local storage
+   */
   const addAudioTranslation = useCallback(async (request: AddAudioTranslationRequest[]) => {
     api.setAuthToken(token);
     setLexemeLoading(true);
@@ -163,6 +184,9 @@ export const useApiWithStore = () => {
     }
   }, [setLexemeError, token]);
 
+  /**
+   * Get the missing audio lexemes and store it in the store and local storage
+   */
   const getLexemeMissingAudio = useCallback(async (request: LexemeMissingAudioResquest) => {
     setLexemeLoading(true);
     setLexemeError(null);
@@ -184,6 +208,9 @@ export const useApiWithStore = () => {
     }
   }, [setLexemeLoading, setLexemeError, toast]);
 
+  /**
+   * Login to the API and store the token in the store and local storage
+   */
   const login = useCallback(async () => {
     try {
       return await api.login();
@@ -220,10 +247,19 @@ export const useApiWithStore = () => {
     }
   }, [toast, token, setUsername]);
 
+  /**
+   * Clear the token in the store and local storage
+   */
   const clearToken = useAuthStore((state: AuthState ) => state.clearToken);
 
+  /**
+   * Clear the username in the store and local storage
+   */
   const clearUsername = useAuthStore((state: AuthState) => state.clearUsername);
 
+  /**
+   * Logout from the API and clear the token and username in the store and local storage
+   */
   const logout = useCallback(async () => {
     api.setAuthToken(token);
     try {
