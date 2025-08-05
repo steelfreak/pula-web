@@ -2,6 +2,7 @@
 
 import { GlossWithSense, LexemeDetail } from "@/lib/types/api";
 import { Button } from "@/components/ui/button";
+import { ExternalLink } from "lucide-react";
 
 interface LexemeDetailResultProps {
   title?: string;
@@ -16,13 +17,9 @@ export default function LexemeDetailResultComponent({
   lexemeDetail,
   onContribute,
 }: LexemeDetailResultProps) {
+  console.log({ glossesWithSense, lexemeDetail });
   return (
     <div className="space-y-4">
-      {/* {title && (
-        <h3 className="text-lg font-medium" style={{ color: "#222222" }}>
-          {title}
-        </h3>
-      )} */}
       {lexemeDetail && lexemeDetail.id && (
         <>
           {/* Image */}
@@ -46,7 +43,15 @@ export default function LexemeDetailResultComponent({
               {lexemeDetail.id}
             </h4>
             <p className="text-sm" style={{ color: "#72777d" }}>
-              Category: {lexemeDetail.lexicalCategoryLabel}
+              Category:{" "}
+              <a
+                href={`https://www.wikidata.org/wiki/${lexemeDetail.lexicalCategoryId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-medium gap-1 mb-3 text-blue-600 hover:text-blue-800"
+              >
+                {lexemeDetail.lexicalCategoryLabel}
+              </a>
             </p>
           </div>
         </>
@@ -54,10 +59,6 @@ export default function LexemeDetailResultComponent({
 
       {/* Glosses */}
       <div className="space-y-3">
-        {/* <h5 className="text-md font-medium" style={{ color: "#222222" }}>
-            Definitions:
-          </h5> */}
-
         {(!glossesWithSense || !glossesWithSense.length) && (
           <div>
             <p className="">No data available</p>
@@ -67,76 +68,103 @@ export default function LexemeDetailResultComponent({
         {glossesWithSense &&
           glossesWithSense.map((glossWithSense, index) => (
             <div key={index} className="py-3 rounded-lg">
-              <div className="">
-                <div className="flex-1">
-                  {glossWithSense.gloss.value ? (
-                    <p
-                      className="font-medium mb-1"
-                      style={{ color: "#222222", textTransform: "capitalize" }}
-                    >
-                      {glossWithSense.gloss.value}
+              <div className="flex">
+                {/* Left side: Lexeme and Sense Info */}
+                <div className="flex-3 pr-8 border-r-[5px] border-gray-300 justify-center items-center flex">
+                  <div className="space-y-1">
+                    {lexemeDetail?.id && (
+                      <a
+                        href={`https://www.wikidata.org/wiki/Lexeme:${lexemeDetail.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium flex items-center gap-1 mb-3 text-blue-600 hover:text-blue-800"
+                      >
+                        {lexemeDetail.id} 
+                        <ExternalLink size={16} />
+                      </a>
+                    )}
+
+                    <p className="text-xs" style={{ color: "#72777d" }}>
+                      ({glossWithSense.gloss.formId})
                     </p>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline" 
-                      className="text-xs"
-                      style={{
-                        color: "#0645ad",
-                        borderColor: "#0645ad",
-                        backgroundColor: "transparent"
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#f0f8ff";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                      }}
-                      onClick={() => onContribute("label")}
-                    >
-                      Add label
-                    </Button>
-                  )}
-                  <p className="text-xs" style={{ color: "#72777d" }}>
-                    Form ID: {glossWithSense.gloss.formId} | Sense ID:{" "}
-                    {glossWithSense.senseId}
-                  </p>
+                    <p className="text-xs" style={{ color: "#72777d" }}>
+                      {glossWithSense.senseId}
+                    </p>
+                  </div>
                 </div>
-                <div className="">
-                  {glossWithSense.gloss.audio ? (
-                    <audio
-                      controls
-                      className="h-8"
-                      style={{ minWidth: "120px" }}
-                    >
-                      <source
-                        src={glossWithSense.gloss.audio}
-                        type="audio/mpeg"
-                      />
-                      Your browser does not support the audio element.
-                    </audio>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-xs"
-                      style={{
-                        color: "#0645ad",
-                        borderColor: "#0645ad",
-                        backgroundColor: "transparent",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#f0f8ff";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                      }}
-                      onClick={() => onContribute("audio")}
-                    >
-                      Add audio
-                    </Button>
-                  )}
+
+                {/* Right side: Label and Language Code */}
+                <div className="flex-1 pl-4 ">
+                  <div className="space-y-1">
+                    {glossWithSense.gloss.value ? (
+                      <p
+                        className="font-medium text-lg"
+                        style={{
+                          color: "#222222",
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        {glossWithSense.gloss.value}
+                      </p>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs"
+                        style={{
+                          color: "#0645ad",
+                          borderColor: "#0645ad",
+                          backgroundColor: "transparent",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#f0f8ff";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                        }}
+                        onClick={() => onContribute?.("label")}
+                      >
+                        Add label
+                      </Button>
+                    )}
+                    <p className="text-sm" style={{ color: "#72777d" }}>
+                      {glossWithSense.gloss.language}
+                    </p>
+                  </div>
                 </div>
+              </div>
+
+              {/* Audio section at bottom */}
+              <div className="mt-3 pt-3 border-t border-gray-200">
+                {glossWithSense.gloss.audio ? (
+                  <audio controls className="h-8" style={{ minWidth: "120px" }}>
+                    <source
+                      src={glossWithSense.gloss.audio}
+                      type="audio/mpeg"
+                    />
+                    Your browser does not support the audio element.
+                  </audio>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs"
+                    style={{
+                      color: "#0645ad",
+                      borderColor: "#0645ad",
+                      backgroundColor: "transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#f0f8ff";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                    }}
+                    onClick={() => onContribute?.("audio")}
+                  >
+                    Add audio
+                  </Button>
+                )}
               </div>
             </div>
           ))}
