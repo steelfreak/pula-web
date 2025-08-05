@@ -2,6 +2,7 @@
 
 import { GlossWithSense, LexemeDetail } from "@/lib/types/api";
 import { Button } from "@/components/ui/button";
+import { ExternalLink } from "lucide-react";
 
 interface LexemeDetailResultProps {
   title?: string;
@@ -42,7 +43,15 @@ export default function LexemeDetailResultComponent({
               {lexemeDetail.id}
             </h4>
             <p className="text-sm" style={{ color: "#72777d" }}>
-              Category: {lexemeDetail.lexicalCategoryLabel}
+              Category:{" "}
+              <a
+                href={`https://www.wikidata.org/wiki/${lexemeDetail.lexicalCategoryId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-medium gap-1 mb-3 text-blue-600 hover:text-blue-800"
+              >
+                {lexemeDetail.lexicalCategoryLabel}
+              </a>
             </p>
           </div>
         </>
@@ -68,10 +77,10 @@ export default function LexemeDetailResultComponent({
                         href={`https://www.wikidata.org/wiki/Lexeme:${lexemeDetail.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm font-medium underline"
-                        style={{ color: "#222222" }}
+                        className="text-sm font-medium flex items-center gap-1 mb-3 text-blue-600 hover:text-blue-800"
                       >
-                        {lexemeDetail.id}
+                        {lexemeDetail.id} 
+                        <ExternalLink size={16} />
                       </a>
                     )}
 
