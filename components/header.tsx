@@ -61,7 +61,7 @@ export default function Header() {
             </div>
             <div className="hidden sm:block h-6 w-px" style={{ backgroundColor: "#a2a9b1" }} />
             <h1 className="hidden sm:block text-lg font-medium" style={{ color: "#222222" }}>
-              Translation Results
+              Dictionary
             </h1>
           </div>
 
