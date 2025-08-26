@@ -133,7 +133,7 @@ deploy-dev:
     PRIVATE_KEY_NAME: "id_rsa.toolforge"
     NODE_ENV: "development"
 
-#   <<: *deploy_template
+  <<: *deploy_template
 # deploy-beta:
 #   stage: deploy
 #   environment: beta
