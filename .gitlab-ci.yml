@@ -133,20 +133,20 @@ deploy-dev:
     PRIVATE_KEY_NAME: "id_rsa.toolforge"
     NODE_ENV: "development"
 
-  <<: *deploy_template
-deploy-beta:
-  stage: deploy
-  environment: beta
-  variables:
-    SSH_HOST: "login.tools.wmflabs.org"
-    SSH_USER: "collins"
-    TOOLNAME: $TOOLNAME
-    BRANCH: build-beta
-    ACCESS_TOKEN: $GITLAB_ACCESS_TOKEN
-    SECURE_FILES_DOWNLOAD_PATH: .
-    PRIVATE_KEY_NAME: "id_rsa.toolforge"
-    NODE_ENV: "beta"
-  <<: *deploy_template
+#   <<: *deploy_template
+# deploy-beta:
+#   stage: deploy
+#   environment: beta
+#   variables:
+#     SSH_HOST: "login.tools.wmflabs.org"
+#     SSH_USER: "collins"
+#     TOOLNAME: $TOOLNAME
+#     BRANCH: build-beta
+#     ACCESS_TOKEN: $GITLAB_ACCESS_TOKEN
+#     SECURE_FILES_DOWNLOAD_PATH: .
+#     PRIVATE_KEY_NAME: "id_rsa.toolforge"
+#     NODE_ENV: "beta"
+#   <<: *deploy_template
 
 deploy-production:
   stage: deploy
