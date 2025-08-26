@@ -61,7 +61,7 @@ export default function Header() {
             </div>
             <div className="hidden sm:block h-6 w-px" style={{ backgroundColor: "#a2a9b1" }} />
             <h1 className="hidden sm:block text-lg font-medium" style={{ color: "#222222" }}>
-              Lexeme Search
+              Translation Results
             </h1>
           </div>
 
@@ -85,6 +85,10 @@ export default function Header() {
             >
               About
             </a> */}
+          </nav>
+
+          {/* User Menu */}
+          <div className="flex items-center space-x-4">
             <a
               href="/contribute"
               className="text-sm font-medium transition-colors hover:underline"
@@ -94,10 +98,6 @@ export default function Header() {
             >
               Record Studio
             </a>
-          </nav>
-
-          {/* User Menu */}
-          <div className="flex items-center space-x-4">
             {username ? (
               <div className="flex items-center space-x-2">
               <User className="w-5 h-5" style={{ color: "#72777d" }} />

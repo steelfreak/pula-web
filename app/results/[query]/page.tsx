@@ -189,10 +189,10 @@ export default function ResultsPage({
           {/* Page Title */}
           <div className="mb-8">
             <h1
-              className="text-2xl font-normal mb-4"
-              style={{ color: "#222222" }}
+              className="text-xl font-medium mb-4"
+              style={{ color: "#72777d", fontStyle: "italic" }}
             >
-              Translation Results
+              Select languages to search
             </h1>
           </div>
 

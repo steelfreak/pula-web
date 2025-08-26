@@ -59,10 +59,11 @@ export default function SearchInterface() {
       {/* Page Title */}
       <div className="text-center mb-12">
         <h1 className="text-3xl font-normal mb-4" style={{ color: "#222222" }}>
-          Easiest way to translate from one language to another
+          Explore words and phrases in other languages
         </h1>
         <p className="max-w-2xl mx-auto" style={{ color: "#72777d" }}>
-          Select your languages and search for a word!
+          {/* Select your languages and search for a word! */}
+          Select languages to proceed.
         </p>
       </div>
 
