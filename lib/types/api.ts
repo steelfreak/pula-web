@@ -40,6 +40,13 @@ export interface GlossWithSense {
   senseId: string;
 }
 
+export interface LexemeTranslation {
+  id: string | null;
+  sense_id: string | null;
+  language: string;
+  value: string | null;
+}
+
 export interface LexemeDetail {
   id: string;
   lexicalCategoryId: string;

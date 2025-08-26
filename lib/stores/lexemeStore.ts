@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { LexemeSearchResult, LexemeDetailResult } from '../types/api';
+import { LexemeSearchResult, LexemeDetailResult, LexemeTranslation } from '../types/api';
 import { CLICKED_LEXEME, LIST_OF_LEXEMES, SELECTED_LEXEME } from '@/utils/constants';
 
 export interface LexemeState {
@@ -7,6 +7,7 @@ export interface LexemeState {
   query: string;
   selectedLexeme: LexemeDetailResult | null;
   clickedLexeme: LexemeSearchResult | null;
+  lexemeTranslations: LexemeTranslation[] | null;
   loading: boolean;
   error: string | null;
 
@@ -15,6 +16,7 @@ export interface LexemeState {
   setQuery: (query: string) => void;
   setSelectedLexeme: (lexeme: LexemeDetailResult | null) => void;
   setClickedLexeme: (lexeme: LexemeSearchResult | null) => void;
+  setLexemeTranslations: (translations: LexemeTranslation[] | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   reset: () => void;
@@ -26,6 +28,7 @@ export const useLexemeStore = create<LexemeState>((set: any) => ({
   query: "",
   selectedLexeme: null,
   clickedLexeme: null,
+  lexemeTranslations: null,
   loading: false,
   error: null,
 
@@ -38,6 +41,7 @@ export const useLexemeStore = create<LexemeState>((set: any) => ({
       localStorage.setItem(SELECTED_LEXEME, JSON.stringify(lexeme));
     }
   },
+  setLexemeTranslations: (translations: LexemeTranslation[] | null) => set({ lexemeTranslations: translations }),
   setLoading: (loading: boolean) => set({ loading }),
   setError: (error: any) => set({ error }),
   reset: () => set({
@@ -45,6 +49,7 @@ export const useLexemeStore = create<LexemeState>((set: any) => ({
     query: "",
     selectedLexeme: null,
     clickedLexeme: null,
+    lexemeTranslations: null,
     loading: false,
     error: null,
   }),

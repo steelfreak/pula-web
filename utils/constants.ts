@@ -6,3 +6,4 @@ export const SELECTED_TARGET_LANGUAGE2 = 'selectedTargetLanguage2';
 export const LIST_OF_LEXEMES = 'listOfLexemes';
 export const CLICKED_LEXEME = 'clickedLexeme';
 export const SELECTED_LEXEME = 'selectedLexeme';
+export const SELECTED_LEXEME_TRANSLATIONS = 'selectedLexemeTranslations';

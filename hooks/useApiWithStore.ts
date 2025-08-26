@@ -19,6 +19,7 @@ import {
   LIST_OF_LANGUAGES,
   LIST_OF_LEXEMES,
   SELECTED_LEXEME,
+  SELECTED_LEXEME_TRANSLATIONS,
 } from "@/utils/constants";
 
 export const useApiWithStore = () => {
@@ -67,6 +68,7 @@ export const useApiWithStore = () => {
     (state: LexemeState) => state.setLoading
   );
   const setLexemeError = useLexemeStore((state: LexemeState) => state.setError);
+  const setLexemeTranslations = useLexemeStore((state: LexemeState) => state.setLexemeTranslations);
 
   /**
    * Get the list of languages from the API and store it in the store and local storage
@@ -195,6 +197,61 @@ export const useApiWithStore = () => {
       setLexemeLoading(false);
     }
   }, [setSelectedLexeme, setLexemeLoading, setLexemeError, toast]);
+
+  /**
+   * Get the translations of a lexeme and store it in the store and local storage
+   */
+  const getLexemeTranslations = useCallback(async () => {
+    setLexemeLoading(true);
+    setLexemeError(null);
+
+    // Get required parameters from stores
+    const clickedLexeme = useLexemeStore.getState().clickedLexeme;
+    const selectedSourceLanguage =
+      useLanguageStore.getState().selectedSourceLanguage;
+    const selectedTargetLanguage1 =
+      useLanguageStore.getState().selectedTargetLanguage1;
+    const selectedTargetLanguage2 =
+      useLanguageStore.getState().selectedTargetLanguage2;
+
+    if (!clickedLexeme || !selectedSourceLanguage || !selectedTargetLanguage1 || !selectedTargetLanguage2) {
+      return;
+    }
+
+    let request: LexemeDetailRequest = {
+      id: clickedLexeme?.id || "",
+      src_lang: selectedSourceLanguage?.lang_code || "",
+      lang_1: selectedTargetLanguage1?.lang_code || "",
+      lang_2: selectedTargetLanguage2?.lang_code || "",
+    };
+
+    try {
+      const translations = await api.getLexemeTranslations(request);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(SELECTED_LEXEME_TRANSLATIONS, JSON.stringify(translations));
+      }
+      setLexemeTranslations(translations);
+      return translations;
+    } catch (error) {
+      const apiError = error as ApiError;
+      setLexemeError(apiError.message);
+      setLexemeTranslations(null);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(SELECTED_LEXEME_TRANSLATIONS);
+      }
+
+      // Show toast notification for error
+      toast({
+        title: "Error loading lexeme translations",
+        description: apiError.message,
+        variant: "destructive",
+      });
+
+      throw apiError;
+    } finally {
+      setLexemeLoading(false);
+    }
+  }, [setLexemeLoading, setLexemeError, toast]);
 
   /**
    * Add a labeled translation to a lexeme and store it in the store and local storage
@@ -352,9 +409,10 @@ export const useApiWithStore = () => {
     // Lexeme store actions
     searchLexemes,
     getLexemeDetails,
+    getLexemeTranslations,
+    getLexemeMissingAudio,
     setQuery,
     setClickedLexeme,
-    getLexemeMissingAudio,
 
     // Auth actions
     login,
@@ -383,7 +441,7 @@ export const useApiWithStore = () => {
     clickedLexeme: useLexemeStore((state: LexemeState) => state.clickedLexeme),
     lexemeLoading: useLexemeStore((state: LexemeState) => state.loading),
     lexemeError: useLexemeStore((state: LexemeState) => state.error),
-
+    lexemeTranslations: useLexemeStore((state: LexemeState) => state.lexemeTranslations),
     // Reset functions
     resetLanguageStore: useLanguageStore((state: LanguageState) => state.reset),
     resetLexemeStore: useLexemeStore((state: LexemeState) => state.reset),

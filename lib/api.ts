@@ -13,6 +13,7 @@ import {
   OauthCallbackRequest,
   LexemeMissingAudioResquest,
   LexemeMissingAudioResponse,
+  LexemeTranslation,
 } from './types/api';
 import { checkIf401Error } from './utils';
 
@@ -24,7 +25,7 @@ class ApiClient {
 
     this.client = axios.create({
       baseURL,
-      timeout: 10000,
+      timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -130,7 +131,19 @@ class ApiClient {
    */
   async getLexemeDetails(request: LexemeDetailRequest): Promise<LexemeDetailResult> {
     try {
-      const response: AxiosResponse<LexemeDetailResult> = await this.client.post(`/lexemes/${request.id}/translations`, request);
+      const response: AxiosResponse<LexemeDetailResult> = await this.client.post(`/lexemes/${request.id}/descriptions`, request);
+      return response.data;
+    } catch (error) {
+      throw error as ApiError;
+    }
+  }
+
+  /**
+   * Get detailed lexeme information with glosses in multiple languages
+   */
+  async getLexemeTranslations(request: LexemeDetailRequest): Promise<LexemeTranslation[]> {
+    try {
+      const response: AxiosResponse<LexemeTranslation[]> = await this.client.post(`/lexemes/${request.id}/translations`, request);
       return response.data;
     } catch (error) {
       throw error as ApiError;
@@ -223,6 +236,7 @@ export const api = {
   getLanguages: () => apiClient.getLanguages(),
   searchLexemes: (request: LexemeSearchRequest) => apiClient.searchLexemes(request),
   getLexemeDetails: (request: LexemeDetailRequest) => apiClient.getLexemeDetails(request),
+  getLexemeTranslations: (request: LexemeDetailRequest) => apiClient.getLexemeTranslations(request),
   addLabeledTranslation: (request: AddLabeledTranslationRequest[]) => apiClient.addLabeledTranslation(request),
   addAudioTranslation: (request: AddAudioTranslationRequest[]) => apiClient.addAudioTranslation(request),
   login: () => apiClient.login(),
