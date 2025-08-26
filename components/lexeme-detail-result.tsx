@@ -79,7 +79,7 @@ export default function LexemeDetailResultComponent({
               <div className="flex-3 pr-8 border-r-[5px] border-gray-300 justify-center items-center flex">
                 <div className="space-y-1">
                   <p className="text-xs" style={{ color: "#72777d" }}>
-                    {translation?.trans_sense_id || "No sense id"}
+                    {translation?.trans_sense_id || "Sense ID Missing..."}
                   </p>
                 </div>
               </div>

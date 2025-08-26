@@ -358,11 +358,11 @@ export const useApiWithStore = () => {
         return response;
       } catch (error) {
         const apiError = error as ApiError;
-        toast({
-          title: "OAuth Callback failed",
-          description: apiError.message,
-          variant: "destructive",
-        });
+        // toast({
+        //   title: "OAuth Callback failed",
+        //   description: apiError.message,
+        //   variant: "destructive",
+        // });
         throw apiError;
       }
     },

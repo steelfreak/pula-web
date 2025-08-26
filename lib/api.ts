@@ -65,9 +65,9 @@ class ApiClient {
             case 403:
               errorMessage = 'Forbidden: Access denied.';
               break;
-            // case 404:
-            //   errorMessage = 'Not found: The requested resource was not found.';
-            //   break;
+            case 404:
+              errorMessage = 'Not found: The requested resource was not found.';
+              break;
             case 500:
               errorMessage = 'Server error: Internal server error occurred.';
               break;
