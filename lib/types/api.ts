@@ -41,9 +41,10 @@ export interface GlossWithSense {
 }
 
 export interface LexemeTranslation {
-  id: string | null;
-  sense_id: string | null;
-  language: string;
+  base_lexeme: string;
+  lexeme_id: string | null;
+  trans_sense_id: string | null;
+  trans_language: string;
   value: string | null;
 }
 

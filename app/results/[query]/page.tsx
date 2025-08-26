@@ -279,7 +279,7 @@ export default function ResultsPage({
                     lexemeTranslations &&
                     lexemeTranslations.find(
                       (t: LexemeTranslation) =>
-                        t.language === selectedSourceLanguage?.lang_code
+                        t.trans_language === selectedSourceLanguage?.lang_code
                     )
                   }
                   title={
@@ -333,7 +333,7 @@ export default function ResultsPage({
                         lexemeTranslations &&
                         lexemeTranslations.find(
                           (t: LexemeTranslation) =>
-                            t.language === selectedTargetLanguage1?.lang_code
+                            t.trans_language === selectedTargetLanguage1?.lang_code
                         )
                       }
                       title={selectedTargetLanguage1?.lang_label || "Target 1"}
@@ -351,7 +351,7 @@ export default function ResultsPage({
                         lexemeTranslations &&
                         lexemeTranslations.find(
                           (t: LexemeTranslation) =>
-                            t.language === selectedTargetLanguage2?.lang_code
+                            t.trans_language === selectedTargetLanguage2?.lang_code
                         )
                       }
                       onContribute={(type) =>
