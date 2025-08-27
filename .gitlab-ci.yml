@@ -69,7 +69,7 @@ build:
       ssh -i "~/.ssh/$PRIVATE_KEY_NAME" "$SSH_USER@$SSH_HOST" <<EOF
       become $TOOLNAME
       # This is the critical new step
-      rm -rf /data/project/$TOOLNAME/app/*
+      toolforge webservice clean
       exit
       exit
       EOF
