@@ -52,7 +52,7 @@ build:
 # -------------------------------------------------
 ..deploy_template: &deploy_template
   # Use the same node image that the runner already trusts
-  image: node:${NODE_VERSION}
+  image: alpine:latest
   tags:
     - wmcs
   needs:
@@ -63,59 +63,56 @@ build:
     # -------------------------------------------------
     # 1️ Install the utilities we need (apt‑get)
     # -------------------------------------------------
-    - apt-get update -y
-    - apt-get install -y --no-install-recommends \
-        openssh-client rsync git bash curl ca-certificates \
-        && rm -rf /var/lib/apt/lists/*
+  - apk add --no-cache curl openssh-client git bash
 
     # -------------------------------------------------
     # 2️ SSH key handling (unchanged)
     # -------------------------------------------------
-    - mkdir -p ~/.ssh
-    - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
-    - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
-    - mv $SECURE_FILES_DOWNLOAD_PATH/$PRIVATE_KEY_NAME ~/.ssh/
-    - chmod 600 ~/.ssh/$PRIVATE_KEY_NAME
+  - mkdir -p ~/.ssh
+  - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
+  - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
+  - mv $SECURE_FILES_DOWNLOAD_PATH/$PRIVATE_KEY_NAME ~/.ssh/
+  - chmod 600 ~/.ssh/$PRIVATE_KEY_NAME
 
-    # -------------------------------------------------
-    # 3️ Git configuration
-    # -------------------------------------------------
-    - git config --global user.email "gitlab-ci@$CI_SERVER_HOST"
-    - git config --global user.name "GitLab CI"
+  # -------------------------------------------------
+  # 3️ Git configuration
+  # -------------------------------------------------
+  - git config --global user.email "gitlab-ci@$CI_SERVER_HOST"
+  - git config --global user.name "GitLab CI"
 
-    # -------------------------------------------------
-    # 4️ Ensure the target branch exists (no fresh repo)
-    # -------------------------------------------------
-    - git fetch origin $BRANCH || true
-    - git checkout $BRANCH || git checkout -b $BRANCH
+  # -------------------------------------------------
+  # 4️ Ensure the target branch exists (no fresh repo)
+  # -------------------------------------------------
+  - git fetch origin $BRANCH || true
+  - git checkout $BRANCH || git checkout -b $BRANCH
 
-    # -------------------------------------------------
-    # 5️ Sync the built folder (rsync copies hidden files, too)
-    # -------------------------------------------------
-    - echo "Syncing .next/standalone → repository"
-    - rsync -a --delete .next/standalone/ .   # copies *everything* inside the repo root
+  # -------------------------------------------------
+  # 5️ Sync the built folder (rsync copies hidden files, too)
+  # -------------------------------------------------
+  - echo "Syncing .next/standalone > repository"
+  - rsync -a --delete .next/standalone/ .   # copies *everything* inside the repo root
 
-    # -------------------------------------------------
-    # 6️Commit & push
-    # -------------------------------------------------
-    - git add -A
-    - git commit -m "Deploy $CI_COMMIT_SHORT_SHA – $CI_COMMIT_TITLE" || echo "nothing to commit"
-    - echo "Pushing to $BRANCH"
-    - git push origin $BRANCH --force
+  # -------------------------------------------------
+  # 6️Commit & push
+  # -------------------------------------------------
+  - git add -A
+  - git commit -m "Deploy $CI_COMMIT_SHORT_SHA – $CI_COMMIT_TITLE" || echo "nothing to commit"
+  - echo "Pushing to $BRANCH"
+  - git push origin $BRANCH --force
 
-    # -------------------------------------------------
-    # 7️ Build a fresh Toolforge image – unique tag so the service can’t reuse old one
-    # -------------------------------------------------
-    - |
-      IMAGE_TAG="${BRANCH}-${CI_COMMIT_SHORT_SHA}"
-      echo "Building Toolforge image $IMAGE_TAG"
-      ssh -i "~/.ssh/$PRIVATE_KEY_NAME" "$SSH_USER@$SSH_HOST" <<'EOF'
-        become $TOOLNAME
-        toolforge build start --image-name "$IMAGE_TAG" \
-          -L https://$CI_SERVER_HOST/$CI_PROJECT_PATH \
-          --ref "$BRANCH"
-        toolforge webservice buildservice restart --mount all
-      EOF
+  # -------------------------------------------------
+  # 7️ Build a fresh Toolforge image – unique tag so the service can’t reuse old one
+  # -------------------------------------------------
+  - |
+    IMAGE_TAG="${BRANCH}-${CI_COMMIT_SHORT_SHA}"
+    echo "Building Toolforge image $IMAGE_TAG"
+    ssh -i "~/.ssh/$PRIVATE_KEY_NAME" "$SSH_USER@$SSH_HOST" <<'EOF'
+      become $TOOLNAME
+      toolforge build start --image-name "$IMAGE_TAG" \
+        -L https://$CI_SERVER_HOST/$CI_PROJECT_PATH \
+        --ref "$BRANCH"
+      toolforge webservice buildservice restart --mount all
+    EOF
 # -------------------------------------------------
 # 3️ Deploy jobs
 # -------------------------------------------------
