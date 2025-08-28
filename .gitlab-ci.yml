@@ -1,124 +1,49 @@
 # GitLab CI/CD Pipeline for Deploy to Server
 variables:
   NODE_VERSION: "22"
-  YARN_CACHE_FOLDER: ".yarn-cache"
-  NEXT_CACHE_FOLDER: ".next/cache"
 
 stages:
   - build
   - deploy
 
 build:
-  # Build stage for Next.js application
+  # This stage syncs the main branch with build-dev and build-production.
+  stage: build
+  image: alpine/git:latest
   rules:
     - if: "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"
-      when: on_success
-    - when: never
-  # This stage installs dependencies, builds the application, and prepares it for deployment.
-  stage: build
-  image: node:22
-  tags:
-    - wmcs
-  cache:
-    key:
-      files:
-        - yarn.lock
-    paths:
-      - node_modules/
-      - $YARN_CACHE_FOLDER
-      - $NEXT_CACHE_FOLDER
   before_script:
-    - yarn config set cache-folder $YARN_CACHE_FOLDER
+    - git config --global user.email "gitlab-ci@${CI_SERVER_HOST}"
+    - git config --global user.name "GitLab CI"
+    - git remote set-url origin "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
   script:
-    - yarn install
-    - yarn build
-    - ls -al .next/
-    - cp public .next/standalone -r
-    - cp .next/static .next/standalone/.next -r
-    - cp Procfile .next/standalone
-    - PACKAGE_DIR=./.next/standalone/ node prune-package.js
-  artifacts:
-    paths:
-      - .next/standalone/
-    expire_in: 1 hour
-  environment: build
-  # variables:
-  #   SENTRY_AUTH_TOKEN: $SENTRY_AUTH_TOKEN
-  #   SENTRY_ORG: $SENTRY_ORG
-  #   SENTRY_PROJECT: $SENTRY_PROJECT
-  #   NEXT_PUBLIC_SENTRY_DSN: $NEXT_PUBLIC_SENTRY_DSN
+    - echo "Pushing source code to build-dev branch..."
+    - git push origin HEAD:build-dev --force
+    - echo "Pushing source code to build-production branch..."
+    - git push origin HEAD:build-production --force
 
 # Deploy template for Toolforge
 .deploy_template: &deploy_template
   image: alpine:latest
-  dependencies:
-    - build
   needs:
     - build
-  rules:
-    - !reference [build, rules]
   script:
-    - apk add --no-cache curl openssh-client git bash
+    - apk add --no-cache curl openssh-client
     - mkdir -p ~/.ssh
     - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
-    - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer"  | bash
+    - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
     - mv $SECURE_FILES_DOWNLOAD_PATH/$PRIVATE_KEY_NAME ~/.ssh
     - chmod 600 ~/.ssh/$PRIVATE_KEY_NAME
-    - git config --global user.email "gitlab-ci@$CI_SERVER_HOST"
-    - git config --global user.name "GitLab CI"
-    # Push to build branch (GitLab equivalent of git-publish-subdir-action)
-    - git checkout -b $BRANCH || git checkout $BRANCH
-    - rm -rf * .github .gitignore || true
-    - cp -r .next/standalone/* . 2>/dev/null || true
-    - cp -r .next/standalone/.* . 2>/dev/null || true
-    - cd .next/standalone
-    - ls -al
-    - echo "Pushing to branch $BRANCH"
-    # Initialize git repository with branch
-    - git init -b $BRANCH
-    - git remote add gitlab_origin https://GITLAB_ACCESS_TOKEN:$ACCESS_TOKEN@$CI_SERVER_HOST/$CI_PROJECT_PATH.git
-    - git add .
-    - git commit -m "Build from commit $CI_COMMIT_SHA - $CI_COMMIT_MESSAGE" || echo "No changes to commit"
-    - git log -1
-    - git status
-    - git push gitlab_origin $BRANCH --force
-    - echo "Restart service on Toolforge"
+    - echo "Restarting service on Toolforge"
     # Restart service on Toolforge
     - |
       ssh -i "~/.ssh/$PRIVATE_KEY_NAME" "$SSH_USER@$SSH_HOST" <<EOF
       become $TOOLNAME
-      toolforge build start --image-name "$BRANCH" -L https://$CI_SERVER_HOST/$CI_PROJECT_PATH --ref "$BRANCH"
+      toolforge build start --image-name "$IMAGE_NAME" -L https://$CI_SERVER_HOST/$CI_PROJECT_PATH --ref "$REF"
       toolforge webservice buildservice restart --mount all
       exit
       exit
       EOF
-# deploy-test:
-#   stage: deploy-test
-#   image: alpine:latest
-#   dependencies:
-#     - build
-#   before_script:
-#     - apk add --no-cache openssh-client rsync
-#     - mkdir -p ~/.ssh
-#     - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
-#     - echo "$SSH_PRIVATE_KEY" > id_rsa
-#     - chmod 600 id_rsa
-#   script:
-#     - rsync -Pav --no-perms --omit-dir-times -e "ssh -i id_rsa" .next/standalone/ "$SSH_USER@$SSH_HOST:$SSH_REMOTE_PATH" --exclude='.next/standalone/cache' --exclude='.next/cache'
-#     - echo $ENVIRONMENT
-#     - ssh -i id_rsa "$SSH_USER@$SSH_HOST" "cd $SSH_REMOTE_PATH && pm2 restart ecosystem.config.js --update-env"
-#   environment:
-#     name: test
-#     url: $TEST_ENVIRONMENT_URL
-#   variables:
-#     SSH_HOST: $TEST_SSH_HOST
-#     SSH_USER: $TEST_SSH_USER
-#     SSH_PRIVATE_KEY: $TEST_SSH_PRIVATE_KEY
-#     SSH_REMOTE_PATH: $TEST_SSH_REMOTE_PATH
-#     ENVIRONMENT: $TEST_ENVIRONMENT
-#   only:
-#     - main
-#   when: manual
 
 deploy-dev:
   stage: deploy
@@ -127,27 +52,14 @@ deploy-dev:
     SSH_HOST: "login.tools.wmflabs.org"
     SSH_USER: "collins"
     TOOLNAME: $TOOLNAME
-    BRANCH: build-dev
+    IMAGE_NAME: "build-dev"
+    REF: "build-dev"
     ACCESS_TOKEN: $GITLAB_ACCESS_TOKEN
     SECURE_FILES_DOWNLOAD_PATH: .
     PRIVATE_KEY_NAME: "id_rsa.toolforge"
     NODE_ENV: "development"
-
-  <<: *deploy_template
-
-deploy-beta:
-  stage: deploy
-  environment: beta
-  variables:
-    SSH_HOST: "login.tools.wmflabs.org"
-    SSH_USER: "collins"
-    TOOLNAME: $TOOLNAME
-    BRANCH: build-beta
-    ACCESS_TOKEN: $GITLAB_ACCESS_TOKEN
-    SECURE_FILES_DOWNLOAD_PATH: .
-    PRIVATE_KEY_NAME: "id_rsa.toolforge"
-    NODE_ENV: "beta"
-
+  rules:
+    - if: "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"
   <<: *deploy_template
 
 deploy-production:
@@ -157,10 +69,12 @@ deploy-production:
     SSH_HOST: "login.tools.wmflabs.org"
     SSH_USER: "collins"
     TOOLNAME: $TOOLNAME
-    BRANCH: build-production
+    IMAGE_NAME: "build-production"
+    REF: "$CI_COMMIT_TAG"
     ACCESS_TOKEN: $GITLAB_ACCESS_TOKEN
     SECURE_FILES_DOWNLOAD_PATH: .
     PRIVATE_KEY_NAME: "id_rsa.toolforge"
     NODE_ENV: "production"
-
+  rules:
+    - if: "$CI_COMMIT_TAG"
   <<: *deploy_template
