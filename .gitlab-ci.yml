@@ -1,28 +1,34 @@
-# GitLab CI/CD Pipeline for Deploy to Server
+# -------------------------------------------------
+# GLOBAL variables (add protected CI variables in Settings → CI/CD)
+# -------------------------------------------------
 variables:
   NODE_VERSION: "22"
   YARN_CACHE_FOLDER: ".yarn-cache"
   NEXT_CACHE_FOLDER: ".next/cache"
+  TOOLNAME: "agpb"                     # <-- set once, used by SSH later
+  PRIVATE_KEY_NAME: "id_rsa.toolforge"
+  # The token must have `write_repository` (and preferably `api`) scope
+  GITLAB_ACCESS_TOKEN: $GITLAB_ACCESS_TOKEN
 
 stages:
   - build
   - deploy
 
+# -----------------------------------------------------------------
+# 1️ Build – produces a self‑contained .next/standalone/ artifact
+# -----------------------------------------------------------------
 build:
-  # Build stage for Next.js application
-  rules:
-    - if: "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"
-      when: on_success
-    - when: never
-  # This stage installs dependencies, builds the application, and prepares it for deployment.
   stage: build
-  image: node:22
+  image: node:${NODE_VERSION}
   tags:
     - wmcs
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: on_success
+    - when: never                 # everything else is ignored
   cache:
-    key:
-      files:
-        - yarn.lock
+    # Invalidate on every commit – cheap because we have a fast runner
+    key: "${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA}"
     paths:
       - node_modules/
       - $YARN_CACHE_FOLDER
@@ -30,137 +36,98 @@ build:
   before_script:
     - yarn config set cache-folder $YARN_CACHE_FOLDER
   script:
-    - yarn install
+    - yarn install --frozen-lockfile
     - yarn build
-    - ls -al .next/
-    - cp public .next/standalone -r
-    - cp .next/static .next/standalone/.next -r
-    - cp Procfile .next/standalone
-    - PACKAGE_DIR=./.next/standalone/ node prune-package.js
+    # Build a portable folder
+    - cp -r public .next/standalone/
+    - cp -r .next/static .next/standalone/.next/
+    - cp Procfile .next/standalone/
+    - NODE_ENV=production node prune-package.js || true
   artifacts:
+    name: "next‑standalone"
     paths:
       - .next/standalone/
-    expire_in: 1 hour
-  environment: build
-  # variables:
-  #   SENTRY_AUTH_TOKEN: $SENTRY_AUTH_TOKEN
-  #   SENTRY_ORG: $SENTRY_ORG
-  #   SENTRY_PROJECT: $SENTRY_PROJECT
-  #   NEXT_PUBLIC_SENTRY_DSN: $NEXT_PUBLIC_SENTRY_DSN
+    expire_in: 24 hour
 
-# Deploy template for Toolforge
+# --------------------------------------------------------------
+# 2️  Deploy template – shared logic for dev / beta / production
+# --------------------------------------------------------------
 .deploy_template: &deploy_template
   image: alpine:latest
+  needs: [build]                     # pulls the artifact
   dependencies:
     - build
-  needs:
-    - build
-  rules:
-    - !reference [build, rules]
+  tags:
+    - wmcs
   script:
-    - apk add --no-cache curl openssh-client git bash
+    # ---- install helpers -------------------------------------------------
+    - apk add --no-cache openssh-client rsync git bash curl
+
+    # ---- SSH key handling ------------------------------------------------
     - mkdir -p ~/.ssh
     - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
-    - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer"  | bash
-    - mv $SECURE_FILES_DOWNLOAD_PATH/$PRIVATE_KEY_NAME ~/.ssh
+    - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
+    - mv $SECURE_FILES_DOWNLOAD_PATH/$PRIVATE_KEY_NAME ~/.ssh/
     - chmod 600 ~/.ssh/$PRIVATE_KEY_NAME
+
+    # ---- Git configuration ------------------------------------------------
     - git config --global user.email "gitlab-ci@$CI_SERVER_HOST"
     - git config --global user.name "GitLab CI"
-    # Push to build branch (GitLab equivalent of git-publish-subdir-action)
-    - git checkout -b $BRANCH || git checkout $BRANCH
-    - rm -rf * .github .gitignore || true
-    - cp -r .next/standalone/* . 2>/dev/null || true
-    - cp -r .next/standalone/.* . 2>/dev/null || true
-    - cd .next/standalone
-    - ls -al
-    - echo "Pushing to branch $BRANCH"
-    # Initialize git repository with branch
-    - git init -b $BRANCH
-    - git remote add gitlab_origin https://GITLAB_ACCESS_TOKEN:$ACCESS_TOKEN@$CI_SERVER_HOST/$CI_PROJECT_PATH.git
-    - git add .
-    - git commit -m "Build from commit $CI_COMMIT_SHA - $CI_COMMIT_MESSAGE" || echo "No changes to commit"
-    - git log -1
-    - git status
-    - git push gitlab_origin $BRANCH --force
-    - echo "Restart service on Toolforge"
-    # Restart service on Toolforge
+
+    # ---- Make sure the target branch exists -------------------------------
+    - git fetch origin $BRANCH || true
+    - git checkout $BRANCH || git checkout -b $BRANCH
+
+    # ---- Sync the built folder -------------------------------------------
+    - echo "Syncing .next/standalone → repository"
+    - rsync -a --delete .next/standalone/ .   # includes hidden files
+
+    # ---- Commit & push ----------------------------------------------------
+    - git add -A
+    - git commit -m "Deploy $CI_COMMIT_SHORT_SHA – $CI_COMMIT_TITLE" || echo "nothing to commit"
+    - echo "Pushing to $BRANCH"
+    - git push origin $BRANCH --force
+
+    # ---- Build a fresh Toolforge image (unique tag) -----------------------
     - |
-      ssh -i "~/.ssh/$PRIVATE_KEY_NAME" "$SSH_USER@$SSH_HOST" <<EOF
-      become $TOOLNAME
-      toolforge build start --image-name "$BRANCH" -L https://$CI_SERVER_HOST/$CI_PROJECT_PATH --ref "$BRANCH"
-      toolforge webservice buildservice restart --mount all
-      exit
-      exit
+      IMAGE_TAG="${BRANCH}-${CI_COMMIT_SHORT_SHA}"
+      echo "Building Toolforge image $IMAGE_TAG"
+      ssh -i "~/.ssh/$PRIVATE_KEY_NAME" "$SSH_USER@$SSH_HOST" <<'EOF'
+        become $TOOLNAME
+        toolforge build start --image-name "$IMAGE_TAG" \
+          -L https://$CI_SERVER_HOST/$CI_PROJECT_PATH \
+          --ref "$BRANCH"
+        toolforge webservice buildservice restart --mount all
       EOF
-# deploy-test:
-#   stage: deploy-test
-#   image: alpine:latest
-#   dependencies:
-#     - build
-#   before_script:
-#     - apk add --no-cache openssh-client rsync
-#     - mkdir -p ~/.ssh
-#     - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
-#     - echo "$SSH_PRIVATE_KEY" > id_rsa
-#     - chmod 600 id_rsa
-#   script:
-#     - rsync -Pav --no-perms --omit-dir-times -e "ssh -i id_rsa" .next/standalone/ "$SSH_USER@$SSH_HOST:$SSH_REMOTE_PATH" --exclude='.next/standalone/cache' --exclude='.next/cache'
-#     - echo $ENVIRONMENT
-#     - ssh -i id_rsa "$SSH_USER@$SSH_HOST" "cd $SSH_REMOTE_PATH && pm2 restart ecosystem.config.js --update-env"
-#   environment:
-#     name: test
-#     url: $TEST_ENVIRONMENT_URL
-#   variables:
-#     SSH_HOST: $TEST_SSH_HOST
-#     SSH_USER: $TEST_SSH_USER
-#     SSH_PRIVATE_KEY: $TEST_SSH_PRIVATE_KEY
-#     SSH_REMOTE_PATH: $TEST_SSH_REMOTE_PATH
-#     ENVIRONMENT: $TEST_ENVIRONMENT
-#   only:
-#     - main
-#   when: manual
+
+# --------------------------------------------------------------
+# 3️  Deploy jobs – dev / beta / production
+# --------------------------------------------------------------
+.deploy_job:
+  stage: deploy
+  variables:
+    SSH_HOST: "login.tools.wmflabs.org"
+    SSH_USER: "collins"
+    ACCESS_TOKEN: $GITLAB_ACCESS_TOKEN
+  <<: *deploy_template
 
 deploy-dev:
-  stage: deploy
+  extends: .deploy_job
   environment: dev
   variables:
-    SSH_HOST: "login.tools.wmflabs.org"
-    SSH_USER: "collins"
-    TOOLNAME: $TOOLNAME
-    BRANCH: build-dev
-    ACCESS_TOKEN: $GITLAB_ACCESS_TOKEN
-    SECURE_FILES_DOWNLOAD_PATH: .
-    PRIVATE_KEY_NAME: "id_rsa.toolforge"
+    BRANCH: "build-dev"
     NODE_ENV: "development"
 
-  <<: *deploy_template
-
 deploy-beta:
-  stage: deploy
+  extends: .deploy_job
   environment: beta
   variables:
-    SSH_HOST: "login.tools.wmflabs.org"
-    SSH_USER: "collins"
-    TOOLNAME: $TOOLNAME
-    BRANCH: build-beta
-    ACCESS_TOKEN: $GITLAB_ACCESS_TOKEN
-    SECURE_FILES_DOWNLOAD_PATH: .
-    PRIVATE_KEY_NAME: "id_rsa.toolforge"
+    BRANCH: "build-beta"
     NODE_ENV: "beta"
 
-  <<: *deploy_template
-
 deploy-production:
-  stage: deploy
+  extends: .deploy_job
   environment: production
   variables:
-    SSH_HOST: "login.tools.wmflabs.org"
-    SSH_USER: "collins"
-    TOOLNAME: $TOOLNAME
-    BRANCH: build-production
-    ACCESS_TOKEN: $GITLAB_ACCESS_TOKEN
-    SECURE_FILES_DOWNLOAD_PATH: .
-    PRIVATE_KEY_NAME: "id_rsa.toolforge"
+    BRANCH: "build-production"
     NODE_ENV: "production"
-
-  <<: *deploy_template
