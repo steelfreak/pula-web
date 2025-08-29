@@ -7,9 +7,10 @@ import {
   LexemeSearchRequest,
   LexemeDetailRequest,
   ApiError,
-  AddLabeledTranslationRequest,
+  AddDescriptionRequest,
   AddAudioTranslationRequest,
   LexemeMissingAudioResquest,
+  AddTranslationRequest,
 } from "@/lib/types/api";
 // Import store state types
 import type { LanguageState } from "@/lib/stores/languageStore";
@@ -256,14 +257,37 @@ export const useApiWithStore = () => {
   /**
    * Add a labeled translation to a lexeme and store it in the store and local storage
    */
-  const addLabeledTranslation = useCallback(
-    async (request: AddLabeledTranslationRequest[]) => {
+  const addDescription = useCallback(
+    async (request: AddDescriptionRequest[]) => {
       api.setAuthToken(token);
       setLexemeLoading(true);
       setLexemeError(null);
 
       try {
-        const response = await api.addLabeledTranslation(request);
+        const response = await api.addDescription(request);
+        return response;
+      } catch (error) {
+        const apiError = error as ApiError;
+        setLexemeError(apiError.message);
+        throw apiError;
+      } finally {
+        setLexemeLoading(false);
+      }
+    },
+    [setLexemeError, setLexemeLoading, token]
+  );
+
+  /**
+   * Add a labeled translation to a lexeme and store it in the store and local storage
+   */
+  const addTranslation = useCallback(
+    async (request: AddTranslationRequest[]) => {
+      api.setAuthToken(token);
+      setLexemeLoading(true);
+      setLexemeError(null);
+
+      try {
+        const response = await api.addTranslation(request);
         return response;
       } catch (error) {
         const apiError = error as ApiError;
@@ -398,7 +422,8 @@ export const useApiWithStore = () => {
   }, [toast, token, clearToken, clearUsername, clearPrefLangs]);
 
   return {
-    addLabeledTranslation,
+    addDescription,
+    addTranslation,
     addAudioTranslation,
     // Language store actions
     getLanguages,

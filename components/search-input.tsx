@@ -21,6 +21,10 @@ export default function SearchInput({ disabled = false, onSearch, value, onChang
   const inputRef = useRef<HTMLInputElement>(null)
   const suggestionsRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
+
+  useEffect(() => {
+    setShowSuggestions(false);
+  }, [])
   
   // Get data from stores
   const { 
@@ -104,6 +108,7 @@ export default function SearchInput({ disabled = false, onSearch, value, onChang
         variant: "destructive",
       })
       inputRef.current?.blur()
+      setShowSuggestions(false)
       return
     }
     setShowSuggestions(true)
@@ -143,6 +148,7 @@ export default function SearchInput({ disabled = false, onSearch, value, onChang
     setSelectedIndex(-1)
     setClickedLexeme(suggestion) // Save the clicked lexeme to the store
     onSearch(suggestion.label)
+    inputRef.current?.blur()
   }
 
   const handleSearch = () => {

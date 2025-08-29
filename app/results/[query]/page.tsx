@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import { Toaster } from "@/components/ui/toaster";
-import ResultsSearchInterface from "@/components/results-search-interface";
 import LexemeDetailResultComponent from "@/components/lexeme-detail-result";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApiWithStore } from "@/hooks/useApiWithStore";
@@ -24,6 +23,7 @@ import ContributeLabelModal from "@/components/contribute-label-modal";
 import { useAuthStore } from "@/lib/stores";
 import GuessContribute from "@/components/guess-contribute";
 import Spinner from "@/components/spinner";
+import ContributeTranslationModal from "@/components/contribute-translation-modal";
 
 export default function ResultsPage({
   params,
@@ -75,7 +75,7 @@ export default function ResultsPage({
   const [contributingLanguage, setContributingLanguage] =
     useState<Language | null>(null);
   const [contributingType, setContributingType] = useState<
-    "label" | "audio" | null
+    "label" | "audio" | "translation" | null
   >(null);
   const token = useAuthStore((state) => state.token);
   const hydrate = useAuthStore((state) => state.hydrate);
@@ -155,7 +155,7 @@ export default function ResultsPage({
   ]);
 
   const handleContribute = (
-    type: "label" | "audio",
+    type: "label" | "audio" | "translation" | null,
     language: Language | null
   ) => {
     if (!language) {
@@ -333,7 +333,8 @@ export default function ResultsPage({
                         lexemeTranslations &&
                         lexemeTranslations.find(
                           (t: LexemeTranslation) =>
-                            t.trans_language === selectedTargetLanguage1?.lang_code
+                            t.trans_language ===
+                            selectedTargetLanguage1?.lang_code
                         )
                       }
                       title={selectedTargetLanguage1?.lang_label || "Target 1"}
@@ -351,7 +352,8 @@ export default function ResultsPage({
                         lexemeTranslations &&
                         lexemeTranslations.find(
                           (t: LexemeTranslation) =>
-                            t.trans_language === selectedTargetLanguage2?.lang_code
+                            t.trans_language ===
+                            selectedTargetLanguage2?.lang_code
                         )
                       }
                       onContribute={(type) =>
@@ -392,6 +394,12 @@ export default function ResultsPage({
           />
           <ContributeLabelModal
             open={contributingType === "label" && open ? true : false}
+            onOpenChange={setOpen}
+            language={contributingLanguage}
+            onSuccess={onContributeSuccess}
+          />
+          <ContributeTranslationModal
+            open={contributingType === "translation" && open ? true : false}
             onOpenChange={setOpen}
             language={contributingLanguage}
             onSuccess={onContributeSuccess}

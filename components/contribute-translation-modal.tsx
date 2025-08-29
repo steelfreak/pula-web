@@ -8,7 +8,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { AddDescriptionRequest, Language, LexemeSearchRequest, LexemeSearchResult } from "@/lib/types/api";
+import { AddTranslationRequest, Language, LexemeSearchRequest, LexemeSearchResult } from "@/lib/types/api";
 import { useEffect, useState } from "react";
 import { useApiWithStore } from "@/hooks/useApiWithStore";
 import { api } from "@/lib/api";
@@ -21,7 +21,7 @@ interface ContributeModalProps {
   onSuccess?: () => void;
 }
 
-export default function ContributeLabelModal({
+export default function ContributeTranslationModal({
   open,
   onOpenChange,
   language,
@@ -31,20 +31,23 @@ export default function ContributeLabelModal({
   const [lexemes, setLexemes] = useState<LexemeSearchResult[]>([]);
   const [hasSelectedLexeme, setHasSelectedLexeme] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { selectedLexeme, addDescription } = useApiWithStore();
+  const { selectedLexeme, addTranslation } = useApiWithStore();
 
   const handleSubmit = async () => {
+    if (!selectedLexeme?.glosses[0]?.senseId) {
+      return;
+    }
     setIsSubmitting(true);
     try {
-      const request: AddDescriptionRequest[] = [{
+      const request: AddTranslationRequest[] = [{
         lexeme_id: selectedLexeme?.lexeme?.id || "",
-        lexeme_sense_id: selectedLexeme?.glosses[0]?.senseId || "",
-        translation_language: language?.lang_code || "",
-        translation_value: query,
+        translation_sense_id: selectedLexeme?.glosses[0]?.senseId,
+        translation_language: language?.lang_wd_id || "",
+        value: query,
         is_new: !hasSelectedLexeme,
         categoryId: selectedLexeme?.lexeme?.lexicalCategoryId || "",
       }];
-      await addDescription(request);
+      await addTranslation(request);
       onSuccess?.();
       onOpenChange(false);
     } catch (error) {
@@ -77,9 +80,9 @@ export default function ContributeLabelModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Label Contribution</DialogTitle>
+          <DialogTitle>Translation Contribution</DialogTitle>
           <DialogDescription>
-            Add a label to help improve our translations for{" "}
+            Add a translation to help improve our translations for{" "}
             {language ? language.lang_label : "the language"}.
           </DialogDescription>
         </DialogHeader>
@@ -148,7 +151,7 @@ export default function ContributeLabelModal({
               Cancel
             </Button>
             <Button onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : (hasSelectedLexeme ? "Save existing label" : "Save new label")}
+              {isSubmitting ? "Saving..." : (hasSelectedLexeme ? "Save existing translation" : "Save new translation")}
               <Spinner loading={isSubmitting} />
             </Button>
           </div>

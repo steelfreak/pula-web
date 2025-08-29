@@ -66,13 +66,22 @@ export interface ApiError {
   status?: number;
 }
 
-export interface AddLabeledTranslationRequest {
+export interface AddDescriptionRequest {
   lexeme_id: string;
   lexeme_sense_id: string;
   translation_language: string;
   translation_value: string;
   is_new: boolean;
   categoryId: string;
+}
+
+export interface AddTranslationRequest {
+  categoryId: string;
+  is_new: boolean;
+  lexeme_id: string;
+  translation_language: string;
+  translation_sense_id: string;
+  value: string;
 }
 
 export interface AddAudioTranslationRequest {

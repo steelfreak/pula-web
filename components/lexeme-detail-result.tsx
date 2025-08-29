@@ -13,7 +13,7 @@ interface LexemeDetailResultProps {
   glossesWithSense?: GlossWithSense[];
   lexemeDetail?: LexemeDetail;
   translation?: LexemeTranslation | null;
-  onContribute?: (type: "label" | "audio") => void;
+  onContribute?: (type: "label" | "audio" | "translation") => void;
 }
 
 export default function LexemeDetailResultComponent({
@@ -86,7 +86,7 @@ export default function LexemeDetailResultComponent({
               <div className="flex-1 pl-4">
                 <div className="space-y-1">
                   {translation?.value ? (
-                    <p
+                    <div
                       className="font-medium text-lg"
                       style={{ color: "#222222", textTransform: "capitalize" }}
                     >
@@ -94,7 +94,7 @@ export default function LexemeDetailResultComponent({
                       <p className="text-xs" style={{ color: "#72777d" }}>
                         {translation.trans_language}
                       </p>
-                    </p>
+                    </div>
                   ) : (
                     <Button
                       size="sm"
@@ -111,8 +111,7 @@ export default function LexemeDetailResultComponent({
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
                       }}
-                      // onClick={() => onContribute?.("label")}
-                      onClick={() => alert("Coming soon")}
+                      onClick={() => onContribute?.("translation")}
                     >
                       Contribute translation
                     </Button>
