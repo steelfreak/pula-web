@@ -276,13 +276,13 @@ export default function ResultsPage({
                 <LexemeDetailResultComponent
                   glossesWithSense={sourceLexemeDetails}
                   lexemeDetail={singleLexemeObj}
-                  translation={
-                    lexemeTranslations &&
-                    lexemeTranslations.find(
-                      (t: LexemeTranslation) =>
-                        t.trans_language === selectedSourceLanguage?.lang_code
-                    )
-                  }
+                  translation={null}
+                    // lexemeTranslations &&
+                    // lexemeTranslations.find(
+                    //   (t: LexemeTranslation) =>
+                    //     t.trans_language === selectedSourceLanguage?.lang_code
+                    // )
+                  // }
                   title={
                     selectedSourceLanguage?.lang_label || "Source Language"
                   }

@@ -72,55 +72,62 @@ export default function LexemeDetailResultComponent({
         )}
 
         {/* Translation */}
-        <div className="pb-4 pt-4">
-          <p className="text-sm border-b border-gray-200 mb-5">Translation:</p>
-          <div className="">
-            <div className="flex">
-              <div className="flex-3 pr-8 border-r-[5px] border-gray-300 justify-center items-center flex">
-                <div className="space-y-1">
-                  <p className="text-xs" style={{ color: "#72777d" }}>
-                    {translation?.trans_sense_id || "Sense ID Missing..."}
-                  </p>
+        {translation && (
+          <div className="pb-4 pt-4">
+            <p className="text-sm border-b border-gray-200 mb-5">
+              Translation:
+            </p>
+            <div className="">
+              <div className="flex">
+                <div className="flex-3 pr-8 border-r-[5px] border-gray-300 justify-center items-center flex">
+                  <div className="space-y-1">
+                    <p className="text-xs" style={{ color: "#72777d" }}>
+                      {translation?.trans_sense_id || "Sense ID Missing..."}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex-1 pl-4">
-                <div className="space-y-1">
-                  {translation?.value ? (
-                    <div
-                      className="font-medium text-lg"
-                      style={{ color: "#222222", textTransform: "capitalize" }}
-                    >
-                      {translation.value}
-                      <p className="text-xs" style={{ color: "#72777d" }}>
-                        {translation.trans_language}
-                      </p>
-                    </div>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-xs"
-                      style={{
-                        color: "#0645ad",
-                        borderColor: "#0645ad",
-                        backgroundColor: "transparent",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#f0f8ff";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                      }}
-                      onClick={() => onContribute?.("translation")}
-                    >
-                      Contribute translation
-                    </Button>
-                  )}
+                <div className="flex-1 pl-4">
+                  <div className="space-y-1">
+                    {translation?.value ? (
+                      <div
+                        className="font-medium text-lg"
+                        style={{
+                          color: "#222222",
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        {translation.value}
+                        <p className="text-xs" style={{ color: "#72777d" }}>
+                          {translation.trans_language}
+                        </p>
+                      </div>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs"
+                        style={{
+                          color: "#0645ad",
+                          borderColor: "#0645ad",
+                          backgroundColor: "transparent",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#f0f8ff";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                        }}
+                        onClick={() => onContribute?.("translation")}
+                      >
+                        Contribute translation
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div>
           <p className="text-sm border-b border-gray-200 pt-4 mb-4">
