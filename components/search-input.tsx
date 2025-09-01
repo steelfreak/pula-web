@@ -21,6 +21,7 @@ export default function SearchInput({
   onChange,
 }: SearchInputProps) {
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [searchQuery, setSearchQuery] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -90,6 +91,9 @@ export default function SearchInput({
   }, []);
 
   const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isTyping) {
+      setIsTyping(true);
+    }
     // onChange(e.target.value)
     setSearchQuery(e.target.value);
     try {
@@ -152,6 +156,7 @@ export default function SearchInput({
   };
 
   const handleSuggestionSelect = (suggestion: LexemeSearchResult) => {
+    setIsTyping(false);
     onChange(suggestion.label);
     setShowSuggestions(false);
     setSelectedIndex(-1);
@@ -213,7 +218,7 @@ export default function SearchInput({
         )}
       </div>
 
-      {!disabled && showSuggestions && lexemes.length > 0 && (
+      {isTyping && !disabled && showSuggestions && lexemes.length > 0 && (
         <div
           ref={suggestionsRef}
           className="absolute z-20 w-full mt-1 bg-white rounded-lg shadow-lg max-h-60 overflow-auto"
