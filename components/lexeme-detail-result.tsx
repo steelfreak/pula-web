@@ -7,6 +7,10 @@ import {
 } from "@/lib/types/api";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
+import { useApiWithStore } from "@/hooks/useApiWithStore";
+import type { AuthState } from "@/lib/stores/authStore";
+import { useAuthStore } from "@/lib/stores/authStore";
+import { useEffect, useState } from "react";
 
 interface LexemeDetailResultProps {
   title?: string;
@@ -23,7 +27,22 @@ export default function LexemeDetailResultComponent({
   translation,
   onContribute,
 }: LexemeDetailResultProps) {
-  console.log({ title, translation });
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { login, logout } = useApiWithStore();
+  const token = useAuthStore((state: AuthState) => state.token);
+  const hydrate = useAuthStore((state: AuthState) => state.hydrate);
+
+  useEffect(() => {
+    hydrate();
+  }, [hydrate]);
+
+  useEffect(() => {
+    // Re-hydrate when token changes
+    if (token) {
+      hydrate();
+    }
+  }, [token, hydrate]);
+
   return (
     <div className="space-y-4">
       {lexemeDetail && lexemeDetail.id && (
@@ -79,14 +98,16 @@ export default function LexemeDetailResultComponent({
             </p>
             <div className="">
               <div className="flex">
-                <div className="flex-3 pr-8 border-r-[5px] border-gray-300 justify-center items-center flex">
-                  <div className="space-y-1">
-                    <p className="text-xs" style={{ color: "#72777d" }}>
-                      {translation?.trans_sense_id || "Sense ID Missing..."}
-                    </p>
+                {token && (
+                  <div className="flex-3 pr-8 border-r-[5px] border-gray-300 justify-center items-center flex mr-4">
+                    <div className="space-y-1">
+                      <p className="text-xs" style={{ color: "#72777d" }}>
+                        {translation?.trans_sense_id || "Sense ID Missing..."}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex-1 pl-4">
+                )}
+                <div className="flex-1">
                   <div className="space-y-1">
                     {translation?.value ? (
                       <div
@@ -138,31 +159,33 @@ export default function LexemeDetailResultComponent({
               <div key={index} className="py-3 rounded-lg">
                 <div className="flex">
                   {/* Left side: Lexeme and Sense Info */}
-                  <div className="flex-3 pr-8 border-r-[5px] border-gray-300 justify-center items-center flex">
-                    <div className="space-y-1">
-                      {lexemeDetail?.id && (
-                        <a
-                          href={`https://www.wikidata.org/wiki/Lexeme:${lexemeDetail.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm font-medium flex items-center gap-1 mb-3 text-blue-600 hover:text-blue-800"
-                        >
-                          {lexemeDetail.id}
-                          <ExternalLink size={16} />
-                        </a>
-                      )}
+                  {token && (
+                    <div className="flex-3 pr-8 border-r-[5px] border-gray-300 justify-center items-center flex  mr-4">
+                      <div className="space-y-1">
+                        {lexemeDetail?.id && (
+                          <a
+                            href={`https://www.wikidata.org/wiki/Lexeme:${lexemeDetail.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm font-medium flex items-center gap-1 mb-3 text-blue-600 hover:text-blue-800"
+                          >
+                            {lexemeDetail.id}
+                            <ExternalLink size={16} />
+                          </a>
+                        )}
 
-                      <p className="text-xs" style={{ color: "#72777d" }}>
-                        ({glossWithSense.gloss.formId})
-                      </p>
-                      <p className="text-xs" style={{ color: "#72777d" }}>
-                        {glossWithSense.senseId}
-                      </p>
+                        <p className="text-xs" style={{ color: "#72777d" }}>
+                          ({glossWithSense.gloss.formId})
+                        </p>
+                        <p className="text-xs" style={{ color: "#72777d" }}>
+                          {glossWithSense.senseId}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Right side: Label and Language Code */}
-                  <div className="flex-1 pl-4 ">
+                  <div className="flex-1 ">
                     <div className="space-y-1">
                       {glossWithSense.gloss.value ? (
                         <p

@@ -427,6 +427,10 @@ export const useApiWithStore = () => {
       clearToken();
       clearUsername();
       clearPrefLangs();
+      toast({
+        title: "Logged out successfully",
+        variant: "default",
+      });
     } catch (error) {
       // const apiError = error as ApiError;
       // toast({
@@ -438,6 +442,10 @@ export const useApiWithStore = () => {
       clearToken();
       clearUsername();
       clearPrefLangs();
+      toast({
+        title: "Logged out successfully",
+        variant: "default",
+      });
     }
   }, [toast, token, clearToken, clearUsername, clearPrefLangs]);
 
