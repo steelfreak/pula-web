@@ -27,9 +27,11 @@ export const useApiWithStore = () => {
   const { toast } = useToast();
   const token = useAuthStore((state: AuthState) => state.token);
   const hydrateAuth = useAuthStore((state: AuthState) => state.hydrate);
-  const hydrateLanguage = useLanguageStore((state: LanguageState) => state.hydrate);
+  const hydrateLanguage = useLanguageStore(
+    (state: LanguageState) => state.hydrate
+  );
   const hydrateLexeme = useLexemeStore((state: LexemeState) => state.hydrate);
-  
+
   // Hydrate all stores on mount
   useEffect(() => {
     hydrateAuth();
@@ -69,7 +71,9 @@ export const useApiWithStore = () => {
     (state: LexemeState) => state.setLoading
   );
   const setLexemeError = useLexemeStore((state: LexemeState) => state.setError);
-  const setLexemeTranslations = useLexemeStore((state: LexemeState) => state.setLexemeTranslations);
+  const setLexemeTranslations = useLexemeStore(
+    (state: LexemeState) => state.setLexemeTranslations
+  );
 
   /**
    * Get the list of languages from the API and store it in the store and local storage
@@ -82,7 +86,7 @@ export const useApiWithStore = () => {
     try {
       const languages = await api.getLanguages();
       setLanguages(languages);
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         localStorage.setItem(LIST_OF_LANGUAGES, JSON.stringify(languages));
       }
       return languages;
@@ -119,7 +123,7 @@ export const useApiWithStore = () => {
       try {
         const lexemes = await api.searchLexemes(request);
         setLexemes(lexemes);
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           localStorage.setItem(LIST_OF_LEXEMES, JSON.stringify(lexemes));
         }
         return lexemes;
@@ -158,7 +162,12 @@ export const useApiWithStore = () => {
     const selectedTargetLanguage2 =
       useLanguageStore.getState().selectedTargetLanguage2;
 
-    if (!clickedLexeme || !selectedSourceLanguage || !selectedTargetLanguage1 || !selectedTargetLanguage2) {
+    if (
+      !clickedLexeme ||
+      !selectedSourceLanguage ||
+      !selectedTargetLanguage1 ||
+      !selectedTargetLanguage2
+    ) {
       return;
     }
 
@@ -173,7 +182,7 @@ export const useApiWithStore = () => {
 
     try {
       const details = await api.getLexemeDetails(request);
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         localStorage.setItem(SELECTED_LEXEME, JSON.stringify(details));
       }
       setSelectedLexeme(details);
@@ -182,7 +191,7 @@ export const useApiWithStore = () => {
       const apiError = error as ApiError;
       setLexemeError(apiError.message);
       setSelectedLexeme(null);
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         localStorage.removeItem(SELECTED_LEXEME);
       }
 
@@ -215,7 +224,12 @@ export const useApiWithStore = () => {
     const selectedTargetLanguage2 =
       useLanguageStore.getState().selectedTargetLanguage2;
 
-    if (!clickedLexeme || !selectedSourceLanguage || !selectedTargetLanguage1 || !selectedTargetLanguage2) {
+    if (
+      !clickedLexeme ||
+      !selectedSourceLanguage ||
+      !selectedTargetLanguage1 ||
+      !selectedTargetLanguage2
+    ) {
       return;
     }
 
@@ -228,8 +242,11 @@ export const useApiWithStore = () => {
 
     try {
       const translations = await api.getLexemeTranslations(request);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(SELECTED_LEXEME_TRANSLATIONS, JSON.stringify(translations));
+      if (typeof window !== "undefined") {
+        localStorage.setItem(
+          SELECTED_LEXEME_TRANSLATIONS,
+          JSON.stringify(translations)
+        );
       }
       setLexemeTranslations(translations);
       return translations;
@@ -237,7 +254,7 @@ export const useApiWithStore = () => {
       const apiError = error as ApiError;
       setLexemeError(apiError.message);
       setLexemeTranslations(null);
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         localStorage.removeItem(SELECTED_LEXEME_TRANSLATIONS);
       }
 
@@ -396,9 +413,9 @@ export const useApiWithStore = () => {
   /**
    * Clear the token in the store and local storage
    */
-  const clearToken = useAuthStore(state => state.clearToken);
-  const clearUsername = useAuthStore(state => state.clearUsername);
-  const clearPrefLangs = useAuthStore(state => state.clearPrefLangs);
+  const clearToken = useAuthStore((state) => state.clearToken);
+  const clearUsername = useAuthStore((state) => state.clearUsername);
+  const clearPrefLangs = useAuthStore((state) => state.clearPrefLangs);
 
   /**
    * Clear the username in the store and local storage
@@ -406,18 +423,21 @@ export const useApiWithStore = () => {
   const logout = useCallback(async () => {
     api.setAuthToken(token);
     try {
-      await api.logout(token || '');
+      await api.logout(token || "");
       clearToken();
       clearUsername();
       clearPrefLangs();
     } catch (error) {
-      const apiError = error as ApiError;
-      toast({
-        title: "Logout failed",
-        description: apiError.message,
-        variant: "destructive",
-      });
-      throw apiError;
+      // const apiError = error as ApiError;
+      // toast({
+      //   title: "Logout failed",
+      //   description: apiError.message,
+      //   variant: "destructive",
+      // });
+      // throw apiError;
+      clearToken();
+      clearUsername();
+      clearPrefLangs();
     }
   }, [toast, token, clearToken, clearUsername, clearPrefLangs]);
 
@@ -466,7 +486,9 @@ export const useApiWithStore = () => {
     clickedLexeme: useLexemeStore((state: LexemeState) => state.clickedLexeme),
     lexemeLoading: useLexemeStore((state: LexemeState) => state.loading),
     lexemeError: useLexemeStore((state: LexemeState) => state.error),
-    lexemeTranslations: useLexemeStore((state: LexemeState) => state.lexemeTranslations),
+    lexemeTranslations: useLexemeStore(
+      (state: LexemeState) => state.lexemeTranslations
+    ),
     // Reset functions
     resetLanguageStore: useLanguageStore((state: LanguageState) => state.reset),
     resetLexemeStore: useLexemeStore((state: LexemeState) => state.reset),
