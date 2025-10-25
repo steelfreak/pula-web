@@ -67,6 +67,16 @@ export default function SearchInterface() {
         </p>
       </div>
 
+      {/* Search Input */}
+      <div className="mb-8">
+        <SearchInput
+          disabled={!areLanguagesSelected}
+          onSearch={handleSearch}
+          value={""}
+          onChange={(v) => null}
+        />
+      </div>
+
       {/* Language Selection */}
       <div className="mb-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -106,16 +116,6 @@ export default function SearchInterface() {
             span="*"
           />
         </div>
-      </div>
-
-      {/* Search Input */}
-      <div className="mb-8">
-        <SearchInput
-          disabled={!areLanguagesSelected}
-          onSearch={handleSearch}
-          value={""}
-          onChange={(v) => null}
-        />
       </div>
 
       {/* Instructions */}
