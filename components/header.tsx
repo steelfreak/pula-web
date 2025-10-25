@@ -60,9 +60,11 @@ export default function Header() {
               </div>
             </div>
             <div className="hidden sm:block h-6 w-px" style={{ backgroundColor: "#a2a9b1" }} />
-            <h1 className="hidden sm:block text-lg font-medium" style={{ color: "#222222" }}>
+            <a href="/"><h1 className="hidden sm:block text-lg font-medium" style={{ color: "#222222" }}>
               Dictionary
             </h1>
+            </a>
+            
           </div>
 
           {/* Desktop Navigation */}
