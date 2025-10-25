@@ -11,9 +11,9 @@ import type { AuthState } from '@/lib/stores/authStore';
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { login, logout } = useApiWithStore();
-  const token = useAuthStore((state: AuthState ) => state.token);
+  const token = useAuthStore((state: AuthState) => state.token);
   const username = useAuthStore((state: AuthState) => state.username);
-  const hydrate = useAuthStore((state: AuthState ) => state.hydrate);
+  const hydrate = useAuthStore((state: AuthState) => state.hydrate);
 
   useEffect(() => {
     hydrate();
@@ -60,9 +60,11 @@ export default function Header() {
               </div>
             </div>
             <div className="hidden sm:block h-6 w-px" style={{ backgroundColor: "#a2a9b1" }} />
-            <h1 className="hidden sm:block text-lg font-medium" style={{ color: "#222222" }}>
-              Dictionary
-            </h1>
+            <a href="/">
+              <h1 className="hidden sm:block text-lg font-medium" style={{ color: "#222222" }}>
+                Dictionary
+              </h1>
+            </a>
           </div>
 
           {/* Desktop Navigation */}
@@ -100,14 +102,14 @@ export default function Header() {
             </a>
             {username ? (
               <div className="flex items-center space-x-2">
-              <User className="w-5 h-5" style={{ color: "#72777d" }} />
-              <span className="text-sm font-medium" style={{ color: "#222222" }}>
-                {username}
-              </span>
+                <User className="w-5 h-5" style={{ color: "#72777d" }} />
+                <span className="text-sm font-medium" style={{ color: "#222222" }}>
+                  {username}
+                </span>
               </div>
             ) : (
               <button className="p-2 transition-colors" style={{ color: "#72777d" }}>
-              <User className="w-5 h-5" />
+                <User className="w-5 h-5" />
               </button>
             )}
             <Button
