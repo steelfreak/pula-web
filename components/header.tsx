@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Menu, User } from "lucide-react"
+import { Menu, User, Mic } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useApiWithStore } from "@/hooks/useApiWithStore"
 import { useAuthStore } from "@/lib/stores/authStore"
@@ -91,12 +91,12 @@ export default function Header() {
           <div className="flex items-center space-x-4">
             <a
               href="/contribute"
-              className="text-sm font-medium transition-colors hover:underline"
+              className="text-sm font-medium transition-colors hover:underline flex items-center gap-2"
               style={{ color: "#0645ad" }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "#0b0080")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "#0645ad")}
             >
-              Record Studio
+              <Mic size="1em" className="max-sm:hidden" /> Record Studio
             </a>
             {username ? (
               <div className="flex items-center space-x-2">
