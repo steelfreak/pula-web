@@ -296,7 +296,7 @@ export default function ResultsPage({
             {/* Column 2: Target Languages Results */}
             <div className="lg:col-span-3">
               <h3
-                className="text-lg font-medium mb-4"
+                className="text-lg font-medium mb-2"
                 style={{ color: "#222222" }}
               >
                 Target Languages
