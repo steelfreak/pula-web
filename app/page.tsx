@@ -5,9 +5,9 @@ import { Toaster } from "@/components/ui/toaster"
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#ffffff" }}>
+    <div className="min-h-screen flex flex-col justify-between" style={{ backgroundColor: "#ffffff" }}>
       <Header />
-      <main className="flex-1">
+      <main className="flex-2">
         <SearchInterface />
       </main>
       <Footer />
