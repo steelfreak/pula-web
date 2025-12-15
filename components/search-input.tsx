@@ -171,6 +171,7 @@ export default function SearchInput({
   };
 
   const clearInput = () => {
+    setSearchQuery('');  // Resets the input value
     onChange("");
     setShowSuggestions(false);
     inputRef.current?.focus();
@@ -206,7 +207,7 @@ export default function SearchInput({
           }
           onBlur={(e) => (e.currentTarget.style.borderColor = "#a2a9b1")}
         />
-        {value && !disabled && (
+        {searchQuery && !disabled && (
           <button
             type="button"
             onClick={clearInput}
