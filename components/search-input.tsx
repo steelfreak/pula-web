@@ -199,12 +199,13 @@ export default function SearchInput({
           onFocus={handleInputFocus}
           placeholder="Type your word here"
           disabled={disabled}
-          className="w-full pl-10 pr-10 py-3 rounded-lg text-lg focus:outline-none transition-colors"
+          className={`w-full pl-10 pr-10 py-3 rounded-lg text-lg focus:outline-none transition-colors ${
+            disabled ? "opacity-50 cursor-not-allowed" : ""
+          }`}
           style={{
             border: `1px solid #a2a9b1`,
             backgroundColor: disabled ? "#f8f9fa" : "#ffffff",
             color: disabled ? "#a2a9b1" : "#222222",
-            cursor: disabled ? "not-allowed" : "text",
           }}
           onFocusCapture={(e) =>
             !disabled && (e.currentTarget.style.borderColor = "#0645ad")
