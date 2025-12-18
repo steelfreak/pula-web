@@ -1,11 +1,12 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { Menu, User, Mic } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useApiWithStore } from "@/hooks/useApiWithStore";
-import { useAuthStore } from "@/lib/stores/authStore";
-import type { AuthState } from "@/lib/stores/authStore";
+import { useEffect, useState } from "react"
+import { Menu, User } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { useApiWithStore } from "@/hooks/useApiWithStore"
+import { useAuthStore } from "@/lib/stores/authStore"
+import type { AuthState } from '@/lib/stores/authStore';
+import Logo from "./logo"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -52,13 +53,11 @@ export default function Header() {
           {/* Logo and Title */}
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <div
-                className="text-sm font-medium cursor-pointer"
-                style={{ color: "#222222" }}
-              >
-                <a href="/">
+              <div className="text-sm font-medium cursor-pointer" style={{ color: "#222222" }}>
+                {/* <a href="/">
                   <img src="/logo.jpg" alt="Logo" className="h-10" />
-                </a>
+                </a> */}
+                <Logo/>
               </div>
             </div>
             <div
