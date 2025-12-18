@@ -22,7 +22,7 @@ export default function Logo () {
   return (
     <button
       onClick={handleLogoClick}
-      aria-lable="Go to homepage"
+      aria-label="Go to homepage"
       className="cursor-pointer"
     >
       <img src="/logo.jpg" alt="Logo" className="h-10" />
