@@ -7,6 +7,8 @@ import { useApiWithStore } from "@/hooks/useApiWithStore"
 import { useAuthStore } from "@/lib/stores/authStore"
 import type { AuthState } from '@/lib/stores/authStore';
 import Logo from "./logo"
+import LoginPromptModal from "./login-prompt-modal"
+
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
