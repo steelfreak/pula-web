@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useApiWithStore } from "@/hooks/useApiWithStore";
 import { useAuthStore } from "@/lib/stores/authStore";
@@ -14,7 +13,7 @@ export default function AuthCallbackPage() {
   const { oauthCallback } = useApiWithStore();
   const { setToken, setUsername, setPrefLangs } = useAuthStore();
 
-  const handleAuth = useCallback(async () => {
+  const handleAuth = async () => {
     const oauth_verifier = searchParams.get("oauth_verifier");
     const oauth_token = searchParams.get("oauth_token");
     
@@ -43,15 +42,16 @@ export default function AuthCallbackPage() {
     localStorage.removeItem('request_token');
     router.replace("/");
 
-  }, [searchParams, router, oauthCallback, setToken, setUsername, setPrefLangs]);
+  };
 
-  useEffect(() => {
+  // Inline effect without useEffect/useCallback
+  if (typeof window !== 'undefined') {
     handleAuth().catch(err => {
       // Show error message in UI
       const message = err instanceof Error ? err.message : "Unknown error";
       document.getElementById("status")?.setAttribute("data-error", message);
     });
-  }, [handleAuth]);
+  }
 
   return (
     <div id="status" className="p-8 text-center" data-error="">

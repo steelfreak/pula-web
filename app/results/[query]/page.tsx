@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, use, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
@@ -17,7 +17,6 @@ import {
   LexemeDetailResult,
   LexemeTranslation,
 } from "@/lib/types/api";
-// import ContributeModal from "@/components/contribute-audio-modal";
 import ContributeAudioModal from "@/components/contribute-audio-modal";
 import { useAuthStore } from "@/lib/stores";
 import GuessContribute from "@/components/guess-contribute";
@@ -35,47 +34,30 @@ export default function ResultsPage({
   const router = useRouter();
   const { toast } = useToast();
   const {
-    searchLexemes,
     getLexemeDetails,
     getLexemeTranslations,
-    lexemes,
     selectedLexeme,
-    lexemeLoading,
     lexemeError,
     selectedSourceLanguage,
     selectedTargetLanguage1,
     selectedTargetLanguage2,
     clickedLexeme,
-    languages,
     setSelectedSourceLanguage,
     getLanguages,
     setSelectedTargetLanguage1,
     setSelectedTargetLanguage2,
-    query,
     lexemeTranslations,
-    isSearchReady,
   } = useApiWithStore();
 
-  const [sourceLexemeDetails, setSourceLexemeDetails] = useState<
-    GlossWithSense[]
-  >([]);
-  const [target1LexemeDetails, setTarget1LexemeDetails] = useState<
-    GlossWithSense[]
-  >([]);
-  const [target2LexemeDetails, setTarget2LexemeDetails] = useState<
-    GlossWithSense[]
-  >([]);
+  const [sourceLexemeDetails, setSourceLexemeDetails] = useState<GlossWithSense[]>([]);
+  const [target1LexemeDetails, setTarget1LexemeDetails] = useState<GlossWithSense[]>([]);
+  const [target2LexemeDetails, setTarget2LexemeDetails] = useState<GlossWithSense[]>([]);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [singleLexemeObj, setSingleLexemeObj] = useState<any>(null);
-  // const areLanguagesSelected =
-  //   selectedSourceLanguage && selectedTargetLanguage1;
-  const [searchQuery, setSearchQuery] = useState(query || "");
+  const [searchQuery, setSearchQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const [contributingLanguage, setContributingLanguage] =
-    useState<Language | null>(null);
-  const [contributingType, setContributingType] = useState<
-    "description" | "audio" | "translation" | null
-  >(null);
+  const [contributingLanguage, setContributingLanguage] = useState<Language | null>(null);
+  const [contributingType, setContributingType] = useState<"description" | "audio" | "translation" | null>(null);
 
   const token = useAuthStore((state) => state.token);
   const hydrate = useAuthStore((state) => state.hydrate);
@@ -98,28 +80,19 @@ export default function ResultsPage({
     }
   }, [clickedLexeme]);
 
-  // Debounced API call functions to prevent excessive calls on rapid language changes
   const debouncedGetLexemeDetails = useCallback(
     (() => {
       let timeoutId: NodeJS.Timeout;
       return () => {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
-          if (
-            selectedSourceLanguage &&
-            (selectedTargetLanguage1 || selectedTargetLanguage2)
-          ) {
+          if (selectedSourceLanguage && (selectedTargetLanguage1 || selectedTargetLanguage2)) {
             getLexemeDetails();
           }
-        }, 300); // 300ms debounce delay
+        }, 300);
       };
     })(),
-    [
-      getLexemeDetails,
-      selectedSourceLanguage,
-      selectedTargetLanguage1,
-      selectedTargetLanguage2,
-    ]
+    [getLexemeDetails, selectedSourceLanguage, selectedTargetLanguage1, selectedTargetLanguage2]
   );
 
   const debouncedGetLexemeTranslations = useCallback(
@@ -128,39 +101,21 @@ export default function ResultsPage({
       return () => {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
-          if (
-            selectedSourceLanguage &&
-            (selectedTargetLanguage1 || selectedTargetLanguage2)
-          ) {
+          if (selectedSourceLanguage && (selectedTargetLanguage1 || selectedTargetLanguage2)) {
             getLexemeTranslations();
           }
-        }, 300); // 300ms debounce delay
+        }, 300);
       };
     })(),
-    [
-      getLexemeTranslations,
-      selectedSourceLanguage,
-      selectedTargetLanguage1,
-      selectedTargetLanguage2,
-    ]
+    [getLexemeTranslations, selectedSourceLanguage, selectedTargetLanguage1, selectedTargetLanguage2]
   );
 
-  // Auto-trigger API calls when language selections change
   useEffect(() => {
-    if (
-      selectedSourceLanguage &&
-      (selectedTargetLanguage1 || selectedTargetLanguage2)
-    ) {
+    if (selectedSourceLanguage && (selectedTargetLanguage1 || selectedTargetLanguage2)) {
       debouncedGetLexemeDetails();
       debouncedGetLexemeTranslations();
     }
-  }, [
-    selectedSourceLanguage,
-    selectedTargetLanguage1,
-    selectedTargetLanguage2,
-    debouncedGetLexemeDetails,
-    debouncedGetLexemeTranslations,
-  ]);
+  }, [selectedSourceLanguage, selectedTargetLanguage1, selectedTargetLanguage2, debouncedGetLexemeDetails, debouncedGetLexemeTranslations]);
 
   useEffect(() => {
     if (!selectedLexeme || !selectedLexeme.lexeme || !selectedLexeme.glosses) {
@@ -170,20 +125,17 @@ export default function ResultsPage({
     setSingleLexemeObj(selectedLexeme.lexeme);
     setSourceLexemeDetails(
       selectedLexeme.glosses.filter(
-        (gloss: GlossWithSense) =>
-          gloss.gloss.language === selectedSourceLanguage?.lang_code
+        (gloss: GlossWithSense) => gloss.gloss.language === selectedSourceLanguage?.lang_code
       )
     );
     setTarget1LexemeDetails(
       selectedLexeme.glosses.filter(
-        (gloss: GlossWithSense) =>
-          gloss.gloss.language === selectedTargetLanguage1?.lang_code
+        (gloss: GlossWithSense) => gloss.gloss.language === selectedTargetLanguage1?.lang_code
       )
     );
     setTarget2LexemeDetails(
       selectedLexeme.glosses.filter(
-        (gloss: GlossWithSense) =>
-          gloss.gloss.language === selectedTargetLanguage2?.lang_code
+        (gloss: GlossWithSense) => gloss.gloss.language === selectedTargetLanguage2?.lang_code
       )
     );
   }, [selectedLexeme]);
@@ -192,8 +144,7 @@ export default function ResultsPage({
     if (!selectedSourceLanguage || !selectedTargetLanguage1) {
       toast({
         title: "Languages required",
-        description:
-          "Please select a source language and at least one target language to get details.",
+        description: "Please select a source language and at least one target language to get details.",
         variant: "destructive",
       });
       return;
@@ -208,37 +159,16 @@ export default function ResultsPage({
     } finally {
       setIsLoadingDetails(false);
     }
-  }, [
-    selectedSourceLanguage?.lang_code,
-    selectedTargetLanguage1?.lang_code,
-    selectedTargetLanguage2?.lang_code,
-    getLexemeDetails,
-    getLexemeTranslations,
-  ]);
+  }, [selectedSourceLanguage, selectedTargetLanguage1, selectedTargetLanguage2, getLexemeDetails, getLexemeTranslations, toast]);
 
   useEffect(() => {
-    if (
-      !prevTarget2Ref.current &&
-      selectedTargetLanguage2 &&
-      clickedLexeme?.id &&
-      selectedSourceLanguage &&
-      selectedTargetLanguage1
-    ) {
+    if (!prevTarget2Ref.current && selectedTargetLanguage2 && clickedLexeme?.id && selectedSourceLanguage && selectedTargetLanguage1) {
       handleGetLexemeDetails();
     }
     prevTarget2Ref.current = selectedTargetLanguage2 || null;
-  }, [
-    selectedTargetLanguage2,
-    clickedLexeme,
-    selectedSourceLanguage,
-    selectedTargetLanguage1,
-    handleGetLexemeDetails,
-  ]);
+  }, [selectedTargetLanguage2, clickedLexeme, selectedSourceLanguage, selectedTargetLanguage1, handleGetLexemeDetails]);
 
-  const handleContribute = (
-    type: "description" | "audio" | "translation" | null,
-    language: Language | null
-  ) => {
+  const handleContribute = (type: "description" | "audio" | "translation" | null, language: Language | null) => {
     if (!language) {
       return;
     }
@@ -248,7 +178,6 @@ export default function ResultsPage({
   };
 
   const onContributeSuccess = async () => {
-    // toast success
     toast({
       title: "Contribution saved",
       description: "Thank you for your contribution. We appreciate your help!",
@@ -261,36 +190,27 @@ export default function ResultsPage({
   };
 
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{ backgroundColor: "#ffffff" }}
-    >
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#ffffff" }}>
       <Header />
       <main className="flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Page Title */}
           <div className="mb-8">
-            <h1
-              className="text-xl font-medium mb-4"
-              style={{ color: "#72777d", fontStyle: "italic" }}
-            >
+            <h1 className="text-xl font-medium mb-4" style={{ color: "#72777d", fontStyle: "italic" }}>
               Select languages to search
             </h1>
           </div>
 
-          {/* Search Interface */}
           <div className="mb-8">
             <div className="mb-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <LanguageSelect
                   value={selectedSourceLanguage?.lang_code || ""}
                   onChange={(langCode) => {
-                    const language = languages.find(
+                    const language = (useApiWithStore().languages || []).find(
                       (lang) => lang.lang_code === langCode
                     );
                     setSelectedSourceLanguage(language || null);
 
-                    // Clear targets if they match the new source
                     if (selectedTargetLanguage1?.lang_code === langCode) {
                       setSelectedTargetLanguage1(null);
                     }
@@ -304,12 +224,11 @@ export default function ResultsPage({
                 <LanguageSelect
                   value={selectedTargetLanguage1?.lang_code || ""}
                   onChange={(langCode) => {
-                    const language = languages.find(
+                    const language = (useApiWithStore().languages || []).find(
                       (lang) => lang.lang_code === langCode
                     );
                     setSelectedTargetLanguage1(language || null);
 
-                    // Clear target 2 if it matches the new target 1
                     if (selectedTargetLanguage2?.lang_code === langCode) {
                       setSelectedTargetLanguage2(null);
                     }
@@ -317,16 +236,12 @@ export default function ResultsPage({
                   placeholder="Select target language 1"
                   label="Target Language 1"
                   span="*"
-                  excludedLanguages={
-                    selectedSourceLanguage
-                      ? [selectedSourceLanguage.lang_code]
-                      : []
-                  }
+                  excludedLanguages={selectedSourceLanguage ? [selectedSourceLanguage.lang_code] : []}
                 />
                 <LanguageSelect
                   value={selectedTargetLanguage2?.lang_code || ""}
                   onChange={(langCode) => {
-                    const language = languages.find(
+                    const language = (useApiWithStore().languages || []).find(
                       (lang) => lang.lang_code === langCode
                     );
                     setSelectedTargetLanguage2(language || null);
@@ -337,82 +252,38 @@ export default function ResultsPage({
               </div>
             </div>
 
-            <SearchInput
-              disabled={!isSearchReady}
-              onSearch={(v) => null}
-              value={searchQuery}
-              onChange={setSearchQuery}
-            />
+            <SearchInput disabled={false} onSearch={(v) => null} value={searchQuery} onChange={setSearchQuery} />
           </div>
 
-          {/* Translation Details */}
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-            {/* Column 1: Source Language Results */}
             <div className="lg:col-span-2">
-              <h3
-                className="text-lg font-medium mb-2"
-                style={{ color: "#222222" }}
-              >
-                Source Language (
-                {selectedSourceLanguage?.lang_label || "Not selected"})
+              <h3 className="text-lg font-medium mb-2" style={{ color: "#222222" }}>
+                Source Language ({selectedSourceLanguage?.lang_label || "Not selected"})
               </h3>
-              <div
-                className="p-6 rounded-lg"
-                style={{
-                  backgroundColor: "#f8f9fa",
-                  border: "1px solid #a2a9b1",
-                }}
-              >
+              <div className="p-6 rounded-lg" style={{ backgroundColor: "#f8f9fa", border: "1px solid #a2a9b1" }}>
                 {isLoadingDetails && (
                   <div className="text-center py-8">
-                    <Spinner
-                      loading={isLoadingDetails}
-                      content="Loading details..."
-                    />
+                    <Spinner loading={isLoadingDetails} content="Loading details..." />
                   </div>
                 )}
                 <LexemeDetailResultComponent
                   glossesWithSense={sourceLexemeDetails}
                   lexemeDetail={singleLexemeObj}
                   translation={null}
-                  // lexemeTranslations &&
-                  // lexemeTranslations.find(
-                  //   (t: LexemeTranslation) =>
-                  //     t.trans_language === selectedSourceLanguage?.lang_code
-                  // )
-                  // }
-                  title={
-                    selectedSourceLanguage?.lang_label || "Source Language"
-                  }
-                  onContribute={() =>
-                    handleContribute("description", selectedSourceLanguage)
-                  }
+                  title={selectedSourceLanguage?.lang_label || "Source Language"}
+                  onContribute={() => handleContribute("description", selectedSourceLanguage)}
                 />
               </div>
             </div>
 
-            {/* Column 2: Target Languages Results */}
             <div className="lg:col-span-3">
-              <h3
-                className="text-lg font-medium mb-2"
-                style={{ color: "#222222" }}
-              >
+              <h3 className="text-lg font-medium mb-2" style={{ color: "#222222" }}>
                 Target Languages
               </h3>
-
-              <div
-                className="p-6 rounded-lg"
-                style={{
-                  backgroundColor: "#f8f9fa",
-                  border: "1px solid #a2a9b1",
-                }}
-              >
+              <div className="p-6 rounded-lg" style={{ backgroundColor: "#f8f9fa", border: "1px solid #a2a9b1" }}>
                 {isLoadingDetails && (
                   <div className="text-center py-8">
-                    <Spinner
-                      loading={isLoadingDetails}
-                      content="Loading details..."
-                    />
+                    <Spinner loading={isLoadingDetails} content="Loading details..." />
                   </div>
                 )}
                 <Tabs defaultValue="target1" className="w-full">
@@ -435,17 +306,12 @@ export default function ResultsPage({
                     <LexemeDetailResultComponent
                       glossesWithSense={target1LexemeDetails}
                       translation={
-                        lexemeTranslations &&
-                        lexemeTranslations.find(
-                          (t: LexemeTranslation) =>
-                            t.trans_language ===
-                            selectedTargetLanguage1?.lang_code
+                        lexemeTranslations?.find(
+                          (t: LexemeTranslation) => t.trans_language === selectedTargetLanguage1?.lang_code
                         )
                       }
                       title={selectedTargetLanguage1?.lang_label || "Target 1"}
-                      onContribute={(type) =>
-                        handleContribute(type, selectedTargetLanguage1)
-                      }
+                      onContribute={(type) => handleContribute(type, selectedTargetLanguage1)}
                     />
                   </TabsContent>
 
@@ -454,16 +320,11 @@ export default function ResultsPage({
                       glossesWithSense={target2LexemeDetails}
                       title={selectedTargetLanguage2?.lang_label || "Target 2"}
                       translation={
-                        lexemeTranslations &&
-                        lexemeTranslations.find(
-                          (t: LexemeTranslation) =>
-                            t.trans_language ===
-                            selectedTargetLanguage2?.lang_code
+                        lexemeTranslations?.find(
+                          (t: LexemeTranslation) => t.trans_language === selectedTargetLanguage2?.lang_code
                         )
                       }
-                      onContribute={(type) =>
-                        handleContribute(type, selectedTargetLanguage2)
-                      }
+                      onContribute={(type) => handleContribute(type, selectedTargetLanguage2)}
                     />
                   </TabsContent>
                 </Tabs>
@@ -471,15 +332,8 @@ export default function ResultsPage({
             </div>
           </div>
 
-          {/* Error Display */}
           {lexemeError && (
-            <div
-              className="border rounded p-4 text-center"
-              style={{
-                backgroundColor: "#fef2f2",
-                borderColor: "#fecaca",
-              }}
-            >
+            <div className="border rounded p-4 text-center" style={{ backgroundColor: "#fef2f2", borderColor: "#fecaca" }}>
               <p style={{ color: "#dc2626" }}>Error: {lexemeError}</p>
             </div>
           )}
@@ -492,19 +346,19 @@ export default function ResultsPage({
       ) : (
         <>
           <ContributeAudioModal
-            open={contributingType === "audio" && open ? true : false}
+            open={contributingType === "audio" && open}
             onOpenChange={setOpen}
             language={contributingLanguage}
             onSuccess={onContributeSuccess}
           />
           <ContributeDescriptionModal
-            open={contributingType === "description" && open ? true : false}
+            open={contributingType === "description" && open}
             onOpenChange={setOpen}
             language={contributingLanguage}
             onSuccess={onContributeSuccess}
           />
           <ContributeTranslationModal
-            open={contributingType === "translation" && open ? true : false}
+            open={contributingType === "translation" && open}
             lexemeTranslations={lexemeTranslations}
             onOpenChange={setOpen}
             language={contributingLanguage}

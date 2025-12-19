@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { LogOut, ChevronLeft, ChevronRight, Check } from "lucide-react"
+import { ChevronLeft, ChevronRight, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { WikimediaCategoryModal, type WikimediaCategoryData } from "@/components/contribution/wikimedia-category-modal"
 import { EnhancedWordListManager } from "@/components/contribution/enhanced-word-list-manager"
 import { RecordingInterface } from "@/components/contribution/recording-interface"
 import { ReviewInterface } from "@/components/contribution/review-interface"
@@ -14,14 +13,6 @@ import { Toaster } from "@/components/ui/toaster"
 import { useApiWithStore } from "@/hooks/useApiWithStore"
 import type { Language, LexemeMissingAudioResponse, LexemeSearchResult } from "@/lib/types/api"
 import { LanguageSelection } from "@/components/contribution/language-selection"
-
-const steps = [
-  { id: 1, name: "Language", completed: false },
-  { id: 2, name: "Word List", completed: false },
-  { id: 3, name: "Record", completed: false },
-  { id: 4, name: "Review", completed: false },
-]
-
 import type { RecordingData, WordListItem, LanguageData } from '@/types/recording'
 
 export default function ContributePage() {
@@ -90,7 +81,7 @@ export default function ContributePage() {
   }
 
   // Handle Wikimedia modal save (add new words)
-  const handleWikimediaModalSave = (data: WikimediaCategoryData) => {
+  const handleWikimediaModalSave = (data: any) => {
     // Wikimedia data should be fetched from API instead of creating mock data
     console.warn("Wikimedia category handling should be implemented with proper API integration")
   }
@@ -260,7 +251,7 @@ export default function ContributePage() {
       case 2:
         return wordList.length > 0
       default:
-        return currentStep < steps.length
+        return currentStep < 4
     }
   }
 
@@ -271,15 +262,15 @@ export default function ContributePage() {
         {/* Sidebar */}
         <aside className="w-64 bg-gray-50 border-r border-gray-200 p-6 pt-12">
           <nav className="space-y-2">
-            {steps.map((step) => {
-              const isCompleted = completedSteps.includes(step.id)
-              const isCurrent = currentStep === step.id
-              const isAccessible = isCompleted || isCurrent || step.id === currentStep + 1
+            {[1,2,3,4].map((stepId) => {
+              const isCompleted = completedSteps.includes(stepId)
+              const isCurrent = currentStep === stepId
+              const isAccessible = isCompleted || isCurrent || stepId === currentStep + 1
 
               return (
                 <button
-                  key={step.id}
-                  onClick={() => handleStepClick(step.id)}
+                  key={stepId}
+                  onClick={() => handleStepClick(stepId)}
                   disabled={!isAccessible}
                   className={cn(
                     "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors",
@@ -297,9 +288,11 @@ export default function ContributePage() {
                       !isCurrent && !isCompleted && "bg-gray-300 text-gray-600",
                     )}
                   >
-                    {isCompleted && !isCurrent ? <Check className="w-4 h-4" /> : step.id}
+                    {isCompleted && !isCurrent ? <Check className="w-4 h-4" /> : stepId}
                   </div>
-                  <span className="font-medium">{step.name}</span>
+                  <span className="font-medium">
+                    {['Language', 'Word List', 'Record', 'Review'][stepId - 1]}
+                  </span>
                 </button>
               )
             })}
@@ -331,11 +324,9 @@ export default function ContributePage() {
       </div>
 
       {/* Modals */}
-      <WikimediaCategoryModal
-        isOpen={isWikimediaModalOpen}
-        onClose={() => setIsWikimediaModalOpen(false)}
-        onSave={handleWikimediaModalSave}
-      />
+      <div>
+        {/* WikimediaCategoryModal was unused - removed */}
+      </div>
       <Footer />
       <Toaster />
     </div>

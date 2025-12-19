@@ -1,5 +1,3 @@
-import Footer from "@/components/footer";
-import Header from "@/components/header";
 import * as Accordion from "@radix-ui/react-accordion";
 import { ChevronDown } from "lucide-react";
 
@@ -54,7 +52,6 @@ const FAQS = [
 export default function FAQPage() {
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
       <main className="flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <h1 className=" text-center text-3xl font-normal mb-4 text-[#222222]">
@@ -85,7 +82,6 @@ export default function FAQPage() {
           </Accordion.Root>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }
