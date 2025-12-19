@@ -111,6 +111,12 @@ export const labelValidationRules: ValidationRule[] = [
   },
 ];
 
+
+/**
+ * Validates a label against a set of predefined validation rules and returns a comprehensive validation result.
+ * @param label - The label string to validate
+ * @returns ValidationResult object containing isValid status, categorized errors/warnings/info, and quality score (0-100)
+ */
 export function validateLabel(label: string): ValidationResult {
   const errors: ValidationRule[] = [];
   const warnings: ValidationRule[] = [];
@@ -147,12 +153,26 @@ export function validateLabel(label: string): ValidationResult {
   };
 }
 
+
+/**
+ * Returns a Tailwind CSS text color class based on the validation quality score.
+ * @param score - Quality score between 0-100
+ * @returns Tailwind CSS color class for text ("text-green-600", "text-yellow-600", or "text-red-600")
+ * @example getQualityColor(85) // returns "text-green-600"
+ */
 export function getQualityColor(score: number): string {
   if (score >= 80) return "text-green-600";
   if (score >= 60) return "text-yellow-600";
   return "text-red-600";
 }
 
+
+/**
+ * Returns Tailwind CSS background and text color classes for quality score badges.
+ * @param score - Quality score between 0-100
+ * @returns Tailwind CSS badge color classes ("bg-green-100 text-green-800", etc.)
+ * @example getQualityBadgeColor(75) // returns "bg-yellow-100 text-yellow-800"
+ */
 export function getQualityBadgeColor(score: number): string {
   if (score >= 80) return "bg-green-100 text-green-800";
   if (score >= 60) return "bg-yellow-100 text-yellow-800";

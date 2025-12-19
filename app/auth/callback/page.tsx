@@ -6,6 +6,11 @@ import { useApiWithStore } from "@/hooks/useApiWithStore";
 import { useAuthStore } from "@/lib/stores/authStore";
 
 // Prevent pre-rendering during build time
+/**
+ * Next.js rendering configuration.
+ * Forces dynamic rendering to prevent pre-rendering during build time.
+ * @type {'force-dynamic'}
+ */
 export const dynamic = 'force-dynamic';
 
 export default function AuthCallbackPage() {
@@ -14,6 +19,22 @@ export default function AuthCallbackPage() {
   const { oauthCallback } = useApiWithStore();
   const { setToken, setUsername, setPrefLangs } = useAuthStore();
 
+  /**
+   * Handles OAuth callback authentication flow.
+   * Extracts OAuth parameters from URL, retrieves request token from localStorage,
+   * calls the OAuth callback API, updates auth store with received credentials,
+   * cleans up storage, and redirects to home page.
+   *
+   * @param {URLSearchParams} searchParams - Next.js search params containing OAuth verifier and token
+   * @param {ReturnType<typeof useRouter>} router - Next.js router instance for navigation
+   * @param {(requestToken: string, queryString: string) => Promise<{token: string, username: string, pref_langs: string[]}>} oauthCallback - API hook function to exchange request token for access token
+   * @param {(token: string) => void} setToken - Auth store setter for access token
+   * @param {(username: string) => void} setUsername - Auth store setter for username
+   * @param {(prefLangs: string[]) => void} setPrefLangs - Auth store setter for preferred languages array
+   * @returns {Promise<void>} Resolves when authentication completes successfully
+   * @throws {Error} When OAuth parameters, request token, or server response are missing/invalid
+   * @sideEffects Updates auth store state, modifies localStorage, performs page navigation
+   */
   const handleAuth = useCallback(async () => {
     const oauth_verifier = searchParams.get("oauth_verifier");
     const oauth_token = searchParams.get("oauth_token");
@@ -45,6 +66,14 @@ export default function AuthCallbackPage() {
 
   }, [searchParams, router, oauthCallback, setToken, setUsername, setPrefLangs]);
 
+  /**
+   * Initializes authentication on component mount.
+   * Calls handleAuth and catches any errors, displaying them in the UI status element.
+   *
+   * @param {() => Promise<void>} handleAuth - Memoized authentication handler function
+   * @returns {void}
+   * @sideEffects Updates DOM element attribute with error message on failure
+   */
   useEffect(() => {
     handleAuth().catch(err => {
       // Show error message in UI

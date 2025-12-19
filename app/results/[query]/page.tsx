@@ -188,6 +188,22 @@ export default function ResultsPage({
     );
   }, [selectedLexeme]);
 
+
+/**
+ * Handles fetching detailed lexeme information and translations for the currently selected lexeme.
+ * Validates that source language and at least one target language (target1) are selected before proceeding.
+ * Manages loading state during API calls and displays error toast for invalid language selection.
+ * 
+ * @async
+ * @param {void} - No parameters (depends on component state: selectedSourceLanguage, selectedTargetLanguage1/2)
+ * @returns {Promise<void>} - Resolves when both getLexemeDetails() and getLexemeTranslations() complete successfully
+ * @sideEffects 
+ *   - Sets isLoadingDetails to true during fetch, false after completion
+ *   - Calls getLexemeDetails() from useApiWithStore hook
+ *   - Calls getLexemeTranslations() from useApiWithStore hook  
+ *   - Shows destructive toast if selectedSourceLanguage or selectedTargetLanguage1 is missing
+ *   - Logs errors to console if API calls fail
+ */
   const handleGetLexemeDetails = useCallback(async () => {
     if (!selectedSourceLanguage || !selectedTargetLanguage1) {
       toast({
@@ -235,6 +251,19 @@ export default function ResultsPage({
     handleGetLexemeDetails,
   ]);
 
+/**
+ * Opens the appropriate contribution modal based on contribution type and target language.
+ * Early returns if no language is provided. Used by LexemeDetailResultComponent's onContribute prop.
+ * 
+ * @param {("description" | "audio" | "translation" | null)} type - Contribution type to open modal for
+ * @param {Language | null} language - Target Language object containing lang_code and lang_label
+ * @returns {void}
+ * @sideEffects 
+ *   - Sets open state to true (opens contribution modal)
+ *   - Updates contributingLanguage state with provided Language object
+ *   - Updates contributingType state with specified contribution type
+ *   - Triggers conditional rendering of ContributeAudioModal, ContributeDescriptionModal, or ContributeTranslationModal
+ */
   const handleContribute = (
     type: "description" | "audio" | "translation" | null,
     language: Language | null

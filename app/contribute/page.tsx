@@ -24,6 +24,26 @@ const steps = [
 
 import type { RecordingData, WordListItem, LanguageData } from '@/types/recording'
 
+
+/**
+ * Orchestrates a 4-step audio contribution workflow for Wikimedia Commons:
+ * 1. **Language Selection** → 2. **Word List Management** → 3. **Audio Recording** → 4. **Review & Submit**
+ * 
+ * Manages state, API integration, step navigation, and conditional rendering.
+ * 
+ * @example
+ * // Workflow progression:
+ * Step 1: User selects language (e.g., "sw" for Swahili)
+ * Step 2: Fetches lexemes missing audio via Wikibase API
+ * Step 3: User records audio for selected lexemes
+ * Step 4: Reviews and submits recordings
+ * 
+ * @returns {JSX.Element} Complete ContributePage UI
+ * @sideEffects 
+ * - API calls via `useApiWithStore`
+ * - LocalStorage cleanup on submission
+ * - Modal state management
+ */
 export default function ContributePage() {
   // API hooks
   const { getLexemeMissingAudio, searchLexemes, languages } = useApiWithStore()
@@ -49,6 +69,27 @@ export default function ContributePage() {
   }, [currentStep, selectedLanguage, page, pageSize])
 
   // Fetch missing audio lexemes from API and map to LexemeWord[]
+  /**
+   * Fetches lexemes without audio from Wikibase API using pagination.
+   * 
+   * **API Endpoint**: `getLexemeMissingAudio` (paginated Wikidata query)
+   * **Data Flow**: Raw API → LexemeMissingAudioResponse[] → WordListItem[]
+   * 
+   * @param {Language} language - Target language with `lang_code` (ISO-639) & `lang_wd_id` (Q-item)
+   * @param {number} page - 1-based page number (default: 1)
+   * @param {number} pageSize - Items per page (1-100, default: 15)
+   * 
+   * @returns {Promise<void>}
+   * @throws {Error} API failure or invalid response
+   * 
+   * @sideEffects
+   * - `loadingWords: true` → `false`
+   * - `lexemeApiError` → `null` or error message
+   * - `wordList` → mapped WordListItem[] or []
+   * 
+   * @example
+   * fetchMissingAudioWords({lang_code: "sw", lang_wd_id: "Q34275"}, 1, 15)
+   */
   const fetchMissingAudioWords = async (language: Language, page: number, pageSize: number) => {
     setLoadingWords(true)
     setLexemeApiError(null)
@@ -84,18 +125,50 @@ export default function ContributePage() {
   }
 
   // Handle language selection (step 1)
+  /**
+   * Updates selected language for the entire workflow.
+   * Triggers `useEffect` to fetch missing audio words on Step 2.
+   * 
+   * @param {string} langCode - ISO-639-1/3 language code (e.g., "en", "sw", "fr")
+   * 
+   * @sideEffects `selectedLanguage` → matching Language | null
+   * 
+   * @example
+   * handleLanguageSelect("sw") // Selects Swahili
+   */
   const handleLanguageSelect = (langCode: string) => {
     const lang = languages.find((l: Language) => l.lang_code === langCode) || null
     setSelectedLanguage(lang)
   }
 
   // Handle Wikimedia modal save (add new words)
+  /**
+   * ⚠️ **PLACEHOLDER** - Handles Wikimedia category data from modal.
+   * Future: Integrate with Wikimedia Commons API for category-based word discovery.
+   * 
+   * @param {WikimediaCategoryData} data - `{categoryId, categoryLabel, words: []}`
+   * 
+   * @todo Replace console.warn with proper API integration
+   */
   const handleWikimediaModalSave = (data: WikimediaCategoryData) => {
     // Wikimedia data should be fetched from API instead of creating mock data
     console.warn("Wikimedia category handling should be implemented with proper API integration")
   }
 
   // Search handler for SearchInput in EnhancedWordListManager
+  /**
+   * Searches lexemes via Wikibase `searchLexemes` API.
+   * Filters duplicates and appends new results to `wordList`.
+   * 
+   * **Search Logic**: Fuzzy matching (`ismatch: 0`) on lemma labels.
+   * 
+   * @param {string} query - Search term (min 1 char, trimmed)
+   * 
+   * @returns {Promise<void>}
+   * @sideEffects 
+   * - `loadingWords: true` → `false`
+   * - `wordList` → `[...prev, ...newWords]` (deduplicated)
+   */
   const handleWordSearch = async (query: string) => {
     if (!selectedLanguage || !query.trim()) return
     setLoadingWords(true)
@@ -131,12 +204,35 @@ export default function ContributePage() {
   }
 
   // Navigation
+  /**
+   * Sidebar step navigation with access control.
+   * 
+   * **Access Rules**:
+   * ✅ Completed steps ✓
+   * ✅ Current step
+   * ✅ Next step (current + 1)
+   * ❌ All others
+   * 
+   * @param {number} stepId - Step number (1=Language, 2=Words, 3=Record, 4=Review)
+   */
   const handleStepClick = (stepId: number) => {
     if (completedSteps.includes(stepId) || stepId === currentStep || stepId === currentStep + 1) {
       setCurrentStep(stepId)
     }
   }
 
+
+  /**
+   * "Next" button handler with step-specific validation.
+   * 
+   * **Step Transitions**:
+   * 1→2: Requires `selectedLanguage`
+   * 2→3: Marks Step 2 complete
+   * 3→4: Marks Step 3 complete
+   * 
+   * @returns {Promise<void>}
+   * @sideEffects currentStep++, completedSteps[], page reset (Step 1→2)
+   */
   const handleNext = async () => {
     if (currentStep === 1 && selectedLanguage) {
       setCurrentStep(2)
@@ -151,11 +247,26 @@ export default function ContributePage() {
     }
   }
 
+
+  /**
+   * "Previous" button - simple decrement (min: step 1).
+   */
   const handlePrevious = () => {
     if (currentStep > 1) setCurrentStep(currentStep - 1)
   }
 
   // Step content
+  /**
+   * Renders step-specific content with props wiring.
+   * 
+   * **Step Components**:
+   * 1. `LanguageSelection`
+   * 2. `EnhancedWordListManager` + pagination controls
+   * 3. `RecordingInterface`
+   * 4. `ReviewInterface`
+   * 
+   * @returns {JSX.Element | null}
+   */
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -253,6 +364,16 @@ export default function ContributePage() {
   }
 
   // Step navigation logic
+  /**
+   * Next button enable/disable logic.
+   * 
+   * **Validation Rules**:
+   * - Step 1: `selectedLanguage !== null`
+   * - Step 2: `wordList.length > 0`
+   * - Steps 3-4: Always true
+   * 
+   * @returns {boolean}
+   */
   const canProceedToNext = () => {
     switch (currentStep) {
       case 1:

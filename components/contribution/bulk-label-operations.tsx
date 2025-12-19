@@ -61,6 +61,11 @@ export function BulkLabelOperations({ isOpen, onClose, words, onWordsChange }: B
   const wordsWithLabels = words.filter((word) => word.hasLabel)
   const selectedWords = words.filter((word) => selectedWordIds.has(word.id))
 
+/**
+ * Selects or deselects all words that have labels.
+ * @param {boolean} checked - Whether to select all (true) or deselect all (false)
+ * @sideEffects Updates the selectedWordIds state by setting it to all words with labels or clearing it
+ */
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       setSelectedWordIds(new Set(wordsWithLabels.map((word) => word.id)))
@@ -69,6 +74,12 @@ export function BulkLabelOperations({ isOpen, onClose, words, onWordsChange }: B
     }
   }
 
+/**
+ * Toggles the selection state of an individual word.
+ * @param {string} wordId - The ID of the word to toggle
+ * @param {boolean} checked - Whether to select (true) or deselect (false) the word
+ * @sideEffects Updates the selectedWordIds state by adding or removing the wordId
+ */
   const handleSelectWord = (wordId: string, checked: boolean) => {
     const newSelected = new Set(selectedWordIds)
     if (checked) {
@@ -79,6 +90,10 @@ export function BulkLabelOperations({ isOpen, onClose, words, onWordsChange }: B
     setSelectedWordIds(newSelected)
   }
 
+/**
+ * Applies the same label text to all selected words.
+ * @sideEffects Updates parent component's words via onWordsChange callback and resets bulkLabelText and selectedWordIds states
+ */
   const handleBulkEdit = () => {
     if (!bulkLabelText.trim() || selectedWordIds.size === 0) return
 
@@ -98,6 +113,10 @@ export function BulkLabelOperations({ isOpen, onClose, words, onWordsChange }: B
     setSelectedWordIds(new Set())
   }
 
+/**
+ * Removes labels from all selected words.
+ * @sideEffects Updates parent component's words via onWordsChange callback and clears selectedWordIds state
+ */
   const handleBulkDelete = () => {
     const updatedWords = words.map((word) => {
       if (selectedWordIds.has(word.id)) {
@@ -114,6 +133,10 @@ export function BulkLabelOperations({ isOpen, onClose, words, onWordsChange }: B
     setSelectedWordIds(new Set())
   }
 
+/**
+ * Validates labels for all selected words using the validateLabel utility.
+ * @sideEffects Updates validationResults state and sets showValidation state to true
+ */
   const handleValidateAll = () => {
     const results = new Map<string, ValidationResult>()
 
@@ -127,6 +150,10 @@ export function BulkLabelOperations({ isOpen, onClose, words, onWordsChange }: B
     setShowValidation(true)
   }
 
+/**
+ * Applies a selected label template to all selected words, replacing placeholders like {Word}.
+ * @sideEffects Updates parent component's words via onWordsChange callback and clears selectedWordIds state
+ */
   const handleApplyTemplate = () => {
     if (!selectedTemplate || selectedWordIds.size === 0) return
 
@@ -152,6 +179,10 @@ export function BulkLabelOperations({ isOpen, onClose, words, onWordsChange }: B
     setSelectedWordIds(new Set())
   }
 
+/**
+ * Exports labels from selected words as a downloadable JSON file.
+ * @sideEffects Creates and downloads a JSON blob file named "lexeme-labels.json" containing word, label, and language data
+ */
   const handleExportLabels = () => {
     const exportData = selectedWords.map((word) => ({
       word: word.word,
@@ -168,6 +199,14 @@ export function BulkLabelOperations({ isOpen, onClose, words, onWordsChange }: B
     URL.revokeObjectURL(url)
   }
 
+/**
+ * Calculates validation summary statistics across all validated words.
+ * @returns {{
+ *   totalErrors: number - Total number of validation errors
+ *   totalWarnings: number - Total number of validation warnings  
+ *   totalInfo: number - Total number of info/suggestions
+ * }}
+ */
   const getValidationSummary = () => {
     let totalErrors = 0
     let totalWarnings = 0

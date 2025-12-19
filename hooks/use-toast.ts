@@ -27,6 +27,11 @@ const actionTypes = {
 
 let count = 0
 
+
+/**
+ * Generates a unique ID for toasts using a incrementing counter.
+ * @returns {string} A unique string ID for the toast.
+ */
 function genId() {
   count = (count + 1) % Number.MAX_SAFE_INTEGER
   return count.toString()
@@ -58,6 +63,10 @@ interface State {
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
 
+/**
+ * Adds a toast ID to the removal queue with a delay.
+ * @param {string} toastId - The ID of the toast to queue for removal.
+ */
 const addToRemoveQueue = (toastId: string) => {
   if (toastTimeouts.has(toastId)) {
     return
@@ -74,6 +83,13 @@ const addToRemoveQueue = (toastId: string) => {
   toastTimeouts.set(toastId, timeout)
 }
 
+/**
+ * Reducer function that handles toast state updates based on dispatched actions.
+ * 
+ * @param {State} state - Current toast state.
+ * @param {Action} action - Action to process.
+ * @returns {State} Updated toast state.
+ */
 export const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "ADD_TOAST":
@@ -133,6 +149,10 @@ const listeners: Array<(state: State) => void> = []
 
 let memoryState: State = { toasts: [] }
 
+/**
+ * Dispatches an action to update the toast state and notifies all listeners.
+ * @param {Action} action - The action to dispatch.
+ */
 function dispatch(action: Action) {
   memoryState = reducer(memoryState, action)
   listeners.forEach((listener) => {
@@ -142,6 +162,16 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">
 
+/**
+ * Creates a new toast and returns methods to control it.
+ * 
+ * @param {Toast} props - Toast properties (title, description, action, etc.).
+ * @returns {{
+ *   id: string,
+ *   dismiss: () => void,
+ *   update: (props: ToasterToast) => void
+ * }} Object with toast ID and control methods.
+ */
 function toast({ ...props }: Toast) {
   const id = genId()
 
@@ -171,6 +201,15 @@ function toast({ ...props }: Toast) {
   }
 }
 
+/**
+ * Custom React hook for accessing toast state and actions.
+ * 
+ * @returns {{
+ *   toasts: ToasterToast[],
+ *   toast: (props: Toast) => {id: string, dismiss: () => void, update: (props: ToasterToast) => void},
+ *   dismiss: (toastId?: string) => void
+ * }} Toast state and API methods.
+ */
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState)
 
