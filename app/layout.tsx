@@ -2,6 +2,7 @@ import type React from "react"
 import "./globals.css"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
+import OnboardingWrapper from "@/components/onboarding-wrapper"
 import { TooltipProvider } from "@/components/tooltip-provider"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -23,10 +24,15 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+
   return (
     <html lang="en">
       <body className={inter.className}>
-        <TooltipProvider>{children}</TooltipProvider>
+        <OnboardingWrapper>
+          <TooltipProvider>
+            {children}
+          </TooltipProvider>
+        </OnboardingWrapper>
       </body>
     </html>
   )

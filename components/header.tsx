@@ -14,10 +14,9 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const { login, logout } = useApiWithStore();
-  const token = useAuthStore((state: AuthState) => state.token);
-  const username = useAuthStore((state: AuthState) => state.username);
-  const hydrate = useAuthStore((state: AuthState) => state.hydrate);
-
+  const token = useAuthStore((state) => state.token);
+  const username = useAuthStore((state) => state.username);
+  const hydrate = useAuthStore((state) => state.hydrate);
   useEffect(() => {
     hydrate();
   }, [hydrate]);
@@ -58,7 +57,7 @@ export default function Header() {
   };
 
   return (
-    <header className="border-b bg-white" style={{ borderColor: "#a2a9b1" }}>
+    <header className="border-b bg-white" style={{ borderColor: "#a2a9b1" }} data-tour="header">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo and Title */}

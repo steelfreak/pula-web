@@ -58,7 +58,7 @@ export default function SearchInterface() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Page Title */}
-      <div className="text-center mb-12">
+      <div className="text-center mb-12" data-tour="page-title">
         <h1 className="text-3xl font-normal mb-4" style={{ color: "#222222" }}>
           Explore words and phrases in other languages
         </h1>
@@ -130,7 +130,7 @@ export default function SearchInterface() {
       </div>
 
       {/* Search Input */}
-      <div className="mb-8">
+      <div className="mb-8" data-tour="search-input">
         <SearchInput
           disabled={!isSearchReady}
           onSearch={handleSearch}
