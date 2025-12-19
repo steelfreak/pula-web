@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from "react";
@@ -9,27 +8,73 @@ import { useApiWithStore } from "@/hooks/useApiWithStore";
 import { LexemeSearchResult } from "@/lib/types/api";
 import { Tooltip } from "@/components/ui/tooltip-info";
 
+/**
+ * Props for the SearchInput component.
+ * @interface SearchInputProps
+ * @property {boolean} [disabled] - Whether the search input is disabled. Defaults to false.
+ * @property {function} onSearch - Callback function triggered when search is executed. Receives the search query as string parameter.
+ * @property {string} value - Current value of the search input.
+ * @property {function} onChange - Callback function for input value changes. Receives the new value as string parameter.
+ */
 interface SearchInputProps {
+  /** Whether the search input is disabled. Defaults to false. */
   disabled?: boolean;
+  /** Callback function triggered when search is executed. Receives the search query as string parameter. */
   onSearch: (query: string) => void;
+  /** Current value of the search input. */
   value: string;
+  /** Callback function for input value changes. Receives the new value as string parameter. */
   onChange: (value: string) => void;
 }
 
+/**
+ * SearchInput is a fully-featured search component with autocomplete suggestions, keyboard navigation,
+ * debounced search, and accessibility features. Displays lexeme search results with hover states and
+ * keyboard selection support.
+ *
+ * ## Features:
+ * - Debounced search (300ms) to optimize API calls
+ * - Keyboard navigation (ArrowUp/Down, Enter, Escape)
+ * - Click outside to close suggestions
+ * - Loading states and empty states
+ * - Disabled state with toast notification
+ * - Clear button functionality
+ * - Tooltip with usage instructions
+ *
+ * @param {SearchInputProps} props - Component props
+ * @returns {JSX.Element} Search input with autocomplete dropdown
+ * @example
+ * ```
+ * <SearchInput
+ *   value={searchValue}
+ *   onChange={setSearchValue}
+ *   onSearch={handleSearch}
+ *   disabled={!languagesSelected}
+ * />
+ * ```
+ */
 export default function SearchInput({
   disabled = false,
   onSearch,
   value,
   onChange,
 }: SearchInputProps) {
+  /** Show/hide autocomplete suggestions dropdown */
   const [showSuggestions, setShowSuggestions] = useState(false);
+  /** Track if user is actively typing */
   const [isTyping, setIsTyping] = useState(false);
+  /** Currently selected suggestion index for keyboard navigation */
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  /** Local search query state for controlled input */
   const [searchQuery, setSearchQuery] = useState(value);
+  /** Reference to the input element */
   const inputRef = useRef<HTMLInputElement>(null);
+  /** Reference to the suggestions dropdown container */
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  /** Toast notification hook */
   const { toast } = useToast();
 
+  /** API and store hooks for lexeme search functionality */
   const {
     searchLexemes,
     selectedSourceLanguage,
@@ -39,11 +84,17 @@ export default function SearchInput({
     setLexemes,
   } = useApiWithStore();
 
+  /**
+   * Sync local search query with external value prop
+   */
   useEffect(() => {
     setSearchQuery(value);
   }, [value]);
 
-  // The Debounced
+  /**
+   * Debounced search effect - triggers API search after 300ms of typing
+   * Only runs if source language is selected and query is not empty
+   */
   useEffect(() => {
     if (!searchQuery.trim()) {
       setShowSuggestions(false);
@@ -64,6 +115,10 @@ export default function SearchInput({
     return () => clearTimeout(timer);
   }, [searchQuery, selectedSourceLanguage, searchLexemes]);
 
+  /**
+   * Handle input value changes - updates local state and triggers debounced search
+   * @param e - Input change event
+   */
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setSearchQuery(newValue);
@@ -73,6 +128,9 @@ export default function SearchInput({
     setSelectedIndex(-1);
   };
 
+  /**
+   * Handle input focus - shows toast if disabled, otherwise shows suggestions
+   */
   const handleInputFocus = () => {
     if (disabled) {
       toast({
@@ -86,7 +144,9 @@ export default function SearchInput({
     if (searchQuery.length > 0) setShowSuggestions(true);
   };
 
-  // Close suggestions when clicking outside
+  /**
+   * Close suggestions when clicking outside the input or dropdown
+   */
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -101,6 +161,10 @@ export default function SearchInput({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  /**
+   * Handle keyboard navigation and search actions
+   * @param e - Keyboard event
+   */
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (disabled || !showSuggestions || lexemes.length === 0) return;
 
@@ -127,6 +191,10 @@ export default function SearchInput({
     }
   };
 
+  /**
+   * Select a suggestion from dropdown - updates input and triggers search
+   * @param suggestion - Selected lexeme search result
+   */
   const handleSuggestionSelect = (suggestion: LexemeSearchResult) => {
     setIsTyping(false);
     setSearchQuery(suggestion.label);
@@ -138,11 +206,17 @@ export default function SearchInput({
     inputRef.current?.blur();
   };
 
+  /**
+   * Execute search with current query value
+   */
   const handleSearch = () => {
     setShowSuggestions(false);
     onSearch(searchQuery);
   };
 
+  /**
+   * Clear input field and reset search state
+   */
   const clearInput = () => {
     setSearchQuery('');  // Resets the input value
     onChange("");
@@ -150,8 +224,6 @@ export default function SearchInput({
     setShowSuggestions(false);
     inputRef.current?.focus();
   };
-
-
 
   return (
     <div className="relative">
@@ -186,9 +258,10 @@ export default function SearchInput({
           </button>
         )}
         {/* Add tooltip for search functionality */}
-        <div className="absolute -right-2 top-1/2 transform -translate-y-1/2">
+        <div className="absolute -right-2 top-1/2 transform -translate-y-1/2 px-2.5">
           <Tooltip description="Search for words or terms. Select source and target languages first. Use arrow keys to navigate suggestions, Enter to select." />
         </div>
+
       </div>
 
       {isTyping && !disabled && showSuggestions && (

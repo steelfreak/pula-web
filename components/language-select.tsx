@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -18,6 +17,16 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 
+/**
+ * Props for the LanguageSelect component.
+ * @interface LanguageSelectProps
+ * @property {string} value - Currently selected language code.
+ * @property {(value: string) => void} onChange - Callback when language selection changes.
+ * @property {string} [placeholder] - Placeholder text for the select button. Defaults to "Select language".
+ * @property {string} [label] - Optional label for the language selector.
+ * @property {string} [span] - Optional validation message or indicator (typically error text).
+ * @property {string[]} [excludedLanguages] - Array of language codes to exclude from the dropdown. Defaults to empty array.
+ */
 interface LanguageSelectProps {
   value: string;
   onChange: (value: string) => void;
@@ -27,6 +36,24 @@ interface LanguageSelectProps {
   excludedLanguages?: string[];
 }
 
+/**
+ * A customizable language selection dropdown component with search functionality.
+ * Integrates with language store for data management and provides contextual tooltips
+ * for source and target language selection.
+ * 
+ * @component
+ * @param {LanguageSelectProps} props - Component props.
+ * @returns {JSX.Element} The rendered LanguageSelect component.
+ * @example
+ * ```
+ * <LanguageSelect
+ *   value="en"
+ *   onChange={setSelectedLanguage}
+ *   label="Source Language"
+ *   excludedLanguages={["en", "fr"]}
+ * />
+ * ```
+ */
 export default function LanguageSelect({
   value,
   onChange,
@@ -35,14 +62,30 @@ export default function LanguageSelect({
   span,
   excludedLanguages = [],
 }: LanguageSelectProps) {
+  /** 
+   * Controls the popover open/closed state.
+   * @type {boolean}
+   */
   const [open, setOpen] = React.useState(false);
+  
+  /** 
+   * Languages data, loading state, and error from language store.
+   * @type {{ languages: any[], loading: boolean, error: string }}
+   */
   const { languages, loading, error } = useLanguageStore();
 
-  // Filter languages based on excluded languages
+  /**
+   * Filters available languages excluding specified language codes.
+   * @type {any[]}
+   */
   const filteredLanguages = languages.filter(
     (language) => !excludedLanguages.includes(language.lang_code)
   );
 
+  /**
+   * Finds the currently selected language object by matching lang_code.
+   * @type {any | undefined}
+   */
   const selectedLanguage = languages.find((lang) => lang.lang_code === value);
 
   return (

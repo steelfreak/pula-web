@@ -4,7 +4,10 @@ import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import { Search } from "lucide-react"
 
-// Mock data for search suggestions
+/**
+ * Mock data for search suggestions - predefined list of common search terms.
+ * @type {readonly string[]}
+ */
 const SUGGESTIONS = [
   "apple",
   "banana",
@@ -24,31 +27,64 @@ const SUGGESTIONS = [
   "language",
   "dictionary",
   "vocabulary",
-]
+] as const
 
-export default function SearchBar() {
+/**
+ * SearchBar component - A fully-featured search input with autocomplete suggestions.
+ * 
+ * Features:
+ * - Real-time filtering of suggestions as user types
+ * - Click outside to close suggestions
+ * - Keyboard focus management
+ * - Custom hover animations and styling
+ * - Form submission handling
+ * 
+ * @component
+ * @example
+ * ```
+ * <SearchBar />
+ * ```
+ * 
+ * @param {object} props - Component props
+ * @param {object} [props.className] - Optional Tailwind CSS classes for the wrapper div
+ * @returns {JSX.Element} Search bar with dropdown suggestions
+ */
+export default function SearchBar(
+  /** @type {{}} Empty props object - this is a self-contained component with no external props */
+  {}
+): JSX.Element {
+  /** Current search query string */
   const [query, setQuery] = useState("")
+  /** Filtered suggestions array based on current query */
   const [suggestions, setSuggestions] = useState<string[]>([])
+  /** Controls visibility of the suggestions dropdown */
   const [showSuggestions, setShowSuggestions] = useState(false)
+  /** Reference to the input element for focus management */
   const inputRef = useRef<HTMLInputElement>(null)
+  /** Reference to the suggestions dropdown for click-outside detection */
   const suggestionsRef = useRef<HTMLDivElement>(null)
 
-  // Filter suggestions based on input
+  /**
+   * Filters suggestions based on current query input.
+   * Updates suggestions state with up to 6 matching items.
+   */
   useEffect(() => {
     if (query.trim() === "") {
       setSuggestions([])
       return
     }
 
-    const filteredSuggestions = SUGGESTIONS.filter((item) => item.toLowerCase().includes(query.toLowerCase())).slice(
-      0,
-      6,
-    ) // Limit to 6 suggestions
+    const filteredSuggestions = SUGGESTIONS.filter((item) =>
+      item.toLowerCase().includes(query.toLowerCase())
+    ).slice(0, 6) // Limit to 6 suggestions
 
     setSuggestions(filteredSuggestions)
   }, [query])
 
-  // Handle clicks outside the component to close suggestions
+  /**
+   * Handles clicks outside the search bar to close suggestions dropdown.
+   * Attaches global mousedown listener with cleanup on unmount.
+   */
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -66,21 +102,33 @@ export default function SearchBar() {
     }
   }, [])
 
+  /**
+   * Handles input changes - updates query state and shows suggestions.
+   * @param e - Input change event
+   */
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value)
     setShowSuggestions(true)
   }
 
+  /**
+   * Handles suggestion item clicks - sets query and closes dropdown.
+   * @param suggestion - Selected suggestion string
+   */
   const handleSuggestionClick = (suggestion: string) => {
     setQuery(suggestion)
     setShowSuggestions(false)
     inputRef.current?.focus()
   }
 
+  /**
+   * Handles form submission - closes dropdown and logs search query.
+   * Ready for integration with actual search API.
+   * @param e - Form submit event
+   */
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     setShowSuggestions(false)
-    // Implement actual search functionality here
     console.log("Searching for:", query)
   }
 

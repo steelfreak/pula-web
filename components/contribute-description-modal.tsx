@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * Modal component for users to contribute descriptions to improve language translations.
+ * Allows adding descriptions to selected lexemes with validation and loading states.
+ */
 import {
   Dialog,
   DialogContent,
@@ -14,6 +18,13 @@ import { useApiWithStore } from "@/hooks/useApiWithStore";
 import { api } from "@/lib/api";
 import Spinner from "./spinner";
 
+/**
+ * Props for the ContributeDescriptionModal component.
+ * @property {boolean} open - Controls the modal visibility state.
+ * @property {(open: boolean) => void} onOpenChange - Callback to toggle modal open state.
+ * @property {Language | null} language - Current language context for the description.
+ * @property {() => void} [onSuccess] - Optional callback executed after successful submission.
+ */
 interface ContributeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -21,18 +32,28 @@ interface ContributeModalProps {
   onSuccess?: () => void;
 }
 
+/**
+ * Modal for contributing descriptions to lexemes.
+ * Features a text input for descriptions, submit/cancel buttons, and loading states.
+ * Submits descriptions via the `useApiWithStore` hook to the selected lexeme.
+ */
 export default function ContributeDescriptionModal({
   open,
   onOpenChange,
   language,
   onSuccess,
 }: ContributeModalProps) {
+  /** Current description text input value. */
   const [query, setQuery] = useState("");
-  // const [lexemes, setLexemes] = useState<LexemeSearchResult[]>([]);
-  // const [hasSelectedLexeme, setHasSelectedLexeme] = useState(false);
+  /** Submission loading state to prevent multiple submissions. */
   const [isSubmitting, setIsSubmitting] = useState(false);
+  /** API hook providing selected lexeme context and description submission. */
   const { selectedLexeme, addDescription } = useApiWithStore();
 
+  /**
+   * Handles form submission to add a description to the selected lexeme.
+   * Validates required data, constructs the API request, and handles success/error states.
+   */
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
@@ -41,8 +62,6 @@ export default function ContributeDescriptionModal({
         sense_id: selectedLexeme?.glosses[0]?.senseId || "",
         language: language?.lang_code || "",
         value: query,
-        // is_new: !hasSelectedLexeme,
-        // categoryId: selectedLexeme?.lexeme?.lexicalCategoryId || "",
       }];
       await addDescription(request);
       onSuccess?.();
@@ -53,26 +72,6 @@ export default function ContributeDescriptionModal({
       setIsSubmitting(false);
     }
   };
-
-  // const getLexemes = async () => {
-  //   if (!language || !language.lang_code) {
-  //     return;
-  //   }
-    
-  //   const request: LexemeSearchRequest = {
-  //     ismatch: 1,
-  //     search: query,
-  //     src_lang: language?.lang_code || "",
-  //     with_sense: false,
-  //   };
-  //   const results = await api.searchLexemes(request);
-  //   setLexemes(results);
-  //   setHasSelectedLexeme(false);
-  // };
-
-  // useEffect(() => {
-  //   getLexemes();
-  // }, [query]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

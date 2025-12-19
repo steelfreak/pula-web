@@ -8,39 +8,126 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+
+/**
+ * Props for the ZustandExample component (receives none directly from parent)
+ * @typedef {Object} ZustandExampleProps
+ * @property {Object} [className] - Optional Tailwind CSS classes for the container
+ */
+
+/**
+ * Comprehensive Zustand store example demonstrating language selection, lexeme search, and store debugging.
+ * 
+ * Features:
+ * - Language store management (source + 2 target languages)
+ * - Lexeme search with loading states and error handling
+ * - Lexeme details display with glosses and media
+ * - Store reset functionality
+ * - Debug panels for store state inspection
+ * 
+ * @component
+ * @example
+ * // Basic usage
+ * <ZustandExample />
+ * 
+ * @example
+ * // With custom container styling
+ * <div className="max-w-4xl mx-auto">
+ *   <ZustandExample />
+ * </div>
+ * 
+ * @returns {JSX.Element} The Zustand store demo interface
+ */
 export const ZustandExample = () => {
+  /**
+   * @typedef {Object} Language
+   * @property {string} lang_code - Language code (e.g., 'en', 'es')
+   * @property {string} lang_label - Human-readable language name
+   * @property {string} [lang_wd_id] - Wikidata ID (optional)
+   */
+
+  /**
+   * @typedef {Object} Lexeme
+   * @property {string} id - Unique lexeme identifier
+   * @property {string} label - Lexeme display name
+   * @property {string} description - Lexeme description
+   */
+
+  /**
+   * @typedef {Object} LexemeDetails
+   * @property {Object} lexeme - Core lexeme data
+   * @property {string} lexeme.id - Lexeme ID
+   * @property {string} lexeme.lexicalCategoryLabel - POS/category label
+   * @property {string} [lexeme.image] - Image URL (optional)
+   * @property {Array} glosses - Array of gloss objects with senses
+   */
+
+
   const {
     // Language store
+    /** @type {Language[]} */
     languages,
+    /** @type {Language|null} */
     selectedSourceLanguage,
+    /** @type {Language|null} */
     selectedTargetLanguage1,
+    /** @type {Language|null} */
     selectedTargetLanguage2,
+    /** @type {boolean} */
     languageLoading,
+    /** @type {string|null} */
     languageError,
+    /** @type {() => Promise<void>} */
     getLanguages,
+    /** @type {(language: Language|null) => void} */
     setSelectedSourceLanguage,
+    /** @type {(language: Language|null) => void} */
     setSelectedTargetLanguage1,
+    /** @type {(language: Language|null) => void} */
     setSelectedTargetLanguage2,
     
     // Lexeme store
+    /** @type {Lexeme[]} */
     lexemes,
+    /** @type {string} */
     query,
+    /** @type {LexemeDetails|null} */
     selectedLexeme,
+    /** @type {boolean} */
     lexemeLoading,
+    /** @type {string|null} */
     lexemeError,
+    /** @type {(params: SearchParams) => Promise<void>} */
     searchLexemes,
+    /** @type {() => Promise<void>} */
     getLexemeDetails,
+    /** @type {(value: string) => void} */
     setQuery,
     
     // Reset functions
+    /** @type {() => void} */
     resetLanguageStore,
+    /** @type {() => void} */
     resetLexemeStore,
   } = useApiWithStore();
+
+
+    /**
+   * @typedef {Object} SearchParams
+   * @property {number} ismatch - Match type (0 = exact?)
+   * @property {string} search - Search query string
+   * @property {string} src_lang - Source language code
+   * @property {boolean} with_sense - Include sense data
+   */
 
   useEffect(() => {
     getLanguages();
   }, [getLanguages]);
 
+  /**
+   * Handles lexeme search execution
+   * @returns {void}
+   */
   const handleSearch = () => {
     if (!selectedSourceLanguage || !query.trim()) return;
     
@@ -52,6 +139,11 @@ export const ZustandExample = () => {
     });
   };
 
+  /**
+   * Fetches detailed lexeme information
+   * @param {string} lexemeId - ID of lexeme to fetch details for
+   * @returns {void}
+   */
   const handleGetDetails = (lexemeId: string) => {
     if (!selectedSourceLanguage || !selectedTargetLanguage1 || !selectedTargetLanguage2) {
       alert('Please select all required languages');
@@ -98,6 +190,13 @@ export const ZustandExample = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {languages.map((lang) => (
+
+                      /**
+                       * Language Select Item Props
+                       * @param {Object} props - SelectItem props
+                       * @param {string} props.key - lang_code
+                       * @param {string} props.value - lang_code
+                       */
                       <SelectItem key={lang.lang_code} value={lang.lang_code}>
                         {lang.lang_label} ({lang.lang_code})
                         {lang.lang_wd_id && ` - ${lang.lang_wd_id}`}
@@ -107,7 +206,7 @@ export const ZustandExample = () => {
                 </Select>
               </div>
 
-              {/* Target Language 1 */}
+              {/* Target Language 1 Select - identical structure to Base Language */}
               <div>
                 <label className="block text-sm font-medium mb-2">Target Language 1</label>
                 <Select
@@ -130,7 +229,7 @@ export const ZustandExample = () => {
                 </Select>
               </div>
 
-              {/* Target Language 2 */}
+              {/* Target Language 2 Select - identical structure */}
               <div>
                 <label className="block text-sm font-medium mb-2">Target Language 2</label>
                 <Select
@@ -178,6 +277,11 @@ export const ZustandExample = () => {
               <div className="space-y-2">
                 <p className="text-sm text-gray-600">Found {lexemes.length} results:</p>
                 {lexemes.map((lexeme) => (
+                  /**
+                   * Lexeme Result Card Props
+                   * @param {string} props.key - lexeme.id
+                   * @param {string} props.className - "p-3"
+                   */
                   <Card key={lexeme.id} className="p-3">
                     <div className="flex justify-between items-start">
                       <div>
@@ -221,6 +325,11 @@ export const ZustandExample = () => {
                   <h5 className="font-medium mb-2">Glosses:</h5>
                   <div className="space-y-2">
                     {selectedLexeme.glosses.map((glossWithSense, index) => (
+                      /**
+                       * Gloss Item Props
+                       * @param {number|string} props.key - index
+                       * @param {string} props.className - "p-2 bg-gray-50 rounded"
+                       */
                       <div key={index} className="p-2 bg-gray-50 rounded">
                         <p className="font-medium">
                           {glossWithSense.gloss.language}: {glossWithSense.gloss.value}
@@ -259,6 +368,12 @@ export const ZustandExample = () => {
                   }, null, 2)}
                 </pre>
               </Card>
+
+              
+              /**
+               * Language Store Debug Card Props
+               * @param {string} props.className - "p-3"
+               */
               <Card className="p-3">
                 <h4 className="font-medium mb-2">Lexeme Store</h4>
                 <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto">

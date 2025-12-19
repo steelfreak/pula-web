@@ -16,8 +16,10 @@ import { useApiWithStore } from "@/hooks/useApiWithStore";
 import { generateAudioFilename } from "@/utils/label-validation";
 import Spinner from "./spinner";
 
-// Wikimedia Commons supported formats
-const WIKIMEDIA_FORMATS = [
+/**
+ * Wikimedia Commons supported audio formats for optimal compatibility.
+ */
+const WIKIMEDIA_FORMATS: string[] = [
   'audio/ogg;codecs=opus',
   'audio/ogg;codecs=vorbis', 
   'audio/oga',
@@ -28,6 +30,15 @@ const WIKIMEDIA_FORMATS = [
   'audio/mp3'
 ];
 
+/**
+ * Props interface for the ContributeAudioModal component.
+ * 
+ * @interface ContributeModalProps
+ * @property {boolean} open - Controls the visibility state of the modal.
+ * @property {(open: boolean) => void} onOpenChange - Callback triggered when modal open state changes.
+ * @property {Language | null} language - Target language for the audio contribution.
+ * @property {() => void} [onSuccess] - Optional callback triggered on successful submission.
+ */
 interface ContributeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -35,29 +46,83 @@ interface ContributeModalProps {
   onSuccess?: () => void;
 }
 
+/**
+ * A modal component for recording and submitting audio contributions to Wikimedia Commons.
+ * 
+ * Features:
+ * - Real-time audio recording with waveform visualization
+ * - Automatic format conversion to Wikimedia-compatible formats (WAV/OGG)
+ * - Audio playback preview before submission
+ * - Base64 encoding for API submission
+ * - Recording duration timer
+ * - Error handling and loading states
+ * 
+ * @component
+ * @example
+ * ```
+ * <ContributeAudioModal
+ *   open={isModalOpen}
+ *   onOpenChange={setIsModalOpen}
+ *   language={selectedLanguage}
+ *   onSuccess={() => console.log('Audio submitted!')}
+ * />
+ * ```
+ */
 export default function ContributeAudioModal({
   open,
   onOpenChange,
   language,
   onSuccess,
 }: ContributeModalProps) {
+  /** State for recording status */
   const [isRecording, setIsRecording] = useState(false);
+  
+  /** State for recorded audio blob */
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  
+  /** State for audio playback status */
   const [isPlaying, setIsPlaying] = useState(false);
+  
+  /** State for microphone audio stream */
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
+  
+  /** State for recording duration in seconds */
   const [recordingTime, setRecordingTime] = useState(0);
+  
+  /** Reference for recording timer interval */
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  /** Reference for MediaRecorder instance */
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  
+  /** Reference for HTML audio element */
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  
+  /** Custom hook providing lexeme data and audio submission API */
   const { selectedLexeme, addAudioTranslation } = useApiWithStore();
+  
+  /** State for base64 encoded audio data for API submission */
   const [audioBase64, setAudioBase64] = useState<string | null>(null);
+  
+  /** State for submission loading indicator */
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  /** State for detected MIME type of recorded audio */
   const [mimeType, setMimeType] = useState<string | null>(null);
+  
+  /** State for audio conversion loading indicator */
   const [isConverting, setIsConverting] = useState(false);
+  
+  /** Reference for accumulating audio data chunks during recording */
   const audioChunksRef = useRef<Blob[]>([]);
 
-  // Check for supported Wikimedia Commons formats
-  const getSupportedMimeType = () => {
+  /**
+   * Detects the best supported MIME type from Wikimedia Commons formats.
+   * Falls back to webm/opus if no preferred format is supported.
+   * 
+   * @returns {string} The optimal MIME type supported by the browser.
+   */
+  const getSupportedMimeType = (): string => {
     for (const format of WIKIMEDIA_FORMATS) {
       if (MediaRecorder.isTypeSupported(format)) {
         return format;
@@ -67,7 +132,12 @@ export default function ContributeAudioModal({
     return 'audio/webm;codecs=opus';
   };
 
-  // Convert audio using Web Audio API if needed
+  /**
+   * Converts recorded audio to WAV format using Web Audio API for Wikimedia Commons compatibility.
+   * 
+   * @param {Blob} blob - Original recorded audio blob.
+   * @returns {Promise<Blob>} WAV formatted audio blob.
+   */
   const convertAudioToOgg = async (blob: Blob): Promise<Blob> => {
     try {
       setIsConverting(true);
@@ -110,7 +180,13 @@ export default function ContributeAudioModal({
     }
   };
 
-  // Helper function to convert AudioBuffer to WAV
+  /**
+   * Converts AudioBuffer to WAV Blob format.
+   * Generates proper WAV file header with PCM encoding.
+   * 
+   * @param {AudioBuffer} buffer - Decoded audio buffer from Web Audio API.
+   * @returns {Blob} WAV formatted audio blob.
+   */
   const audioBufferToWav = (buffer: AudioBuffer): Blob => {
     const length = buffer.length;
     const numberOfChannels = buffer.numberOfChannels;
@@ -152,6 +228,11 @@ export default function ContributeAudioModal({
     return new Blob([arrayBuffer], { type: 'audio/wav' });
   };
 
+  /**
+   * Effect hook managing recording timer.
+   * Updates recording duration every second while recording.
+   * Cleans up timer on unmount or recording stop.
+   */
   useEffect(() => {
     if (isRecording) {
       setRecordingTime(0);
@@ -173,7 +254,11 @@ export default function ContributeAudioModal({
     };
   }, [isRecording]);
 
-  const startRecording = async () => {
+  /**
+   * Initiates audio recording using MediaRecorder API.
+   * Requests microphone permissions and sets up optimal format detection.
+   */
+  const startRecording = async (): Promise<void> => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setAudioStream(stream);
@@ -221,7 +306,11 @@ export default function ContributeAudioModal({
     }
   };
 
-  const stopRecording = () => {
+  /**
+   * Stops the current recording session.
+   * Releases microphone stream tracks and processes recorded audio.
+   */
+  const stopRecording = (): void => {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
       mediaRecorderRef.current.stream
@@ -233,13 +322,20 @@ export default function ContributeAudioModal({
     }
   };
 
-  const playRecording = () => {
+  /**
+   * Initiates playback of the recorded audio.
+   */
+  const playRecording = (): void => {
     if (audioBlob) {
       setIsPlaying(true);
     }
   };
 
-  const resetRecording = () => {
+  /**
+   * Resets the recording session to initial state.
+   * Clears all audio data and UI states.
+   */
+  const resetRecording = (): void => {
     setAudioBlob(null);
     setAudioStream(null);
     setIsPlaying(false);
@@ -254,9 +350,10 @@ export default function ContributeAudioModal({
   };
 
   /**
-   * Handle the submission of the audio translation
+   * Handles submission of recorded audio to Wikimedia Commons API.
+   * Generates filename, converts to base64, and calls addAudioTranslation API.
    */
-  const handleSubmit = async () => {
+  const handleSubmit = async (): Promise<void> => {
     if (!audioBase64) {
       return;
     }
@@ -269,7 +366,7 @@ export default function ContributeAudioModal({
       const destinationLanguageLexemeLabel = selectedLexeme?.glosses.find((gl: any) => gl.gloss.language === destinationLanguageCode)?.gloss.value || "";
       
       // Determine file extension based on MIME type
-      const getFileExtension = (mimeType: string) => {
+      const getFileExtension = (mimeType: string): string => {
         if (mimeType.includes('wav')) return 'wav';
         if (mimeType.includes('ogg')) return 'ogg';
         if (mimeType.includes('oga')) return 'oga';

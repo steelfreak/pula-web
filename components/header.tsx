@@ -9,18 +9,59 @@ import type { AuthState } from '@/lib/stores/authStore';
 import Logo from "./logo"
 import LoginPromptModal from "./login-prompt-modal"
 
-
+/**
+ * Header component for the application featuring:
+ * - Logo and title
+ * - Authentication controls (login/logout)
+ * - User profile display
+ * - Navigation links (FAQ, Record Studio)
+ * - Responsive mobile menu
+ * - Authentication state management
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered Header component.
+ * @example
+ * ```
+ * <Header />
+ * ```
+ */
 export default function Header() {
+  /** 
+   * Controls mobile menu visibility on smaller screens.
+   * @type {boolean}
+   */
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  /** 
+   * Controls login prompt modal visibility.
+   * @type {boolean}
+   */
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  
+  /** API authentication utilities */
   const { login, logout } = useApiWithStore();
+  
+  /** Current authentication token from auth store */
   const token = useAuthStore((state) => state.token);
+  
+  /** Current username from auth store */
   const username = useAuthStore((state) => state.username);
+  
+  /** Auth store hydration function */
   const hydrate = useAuthStore((state) => state.hydrate);
+
+  /**
+   * Initial hydration effect on component mount.
+   * Ensures auth state is properly initialized when component loads.
+   */
   useEffect(() => {
     hydrate();
   }, [hydrate]);
 
+  /**
+   * Re-hydrates authentication state when token changes.
+   * Keeps store synchronized with token updates from external sources.
+   */
   useEffect(() => {
     // Re-hydrate when token changes
     if (token) {
@@ -28,6 +69,11 @@ export default function Header() {
     }
   }, [token, hydrate]);
 
+  /**
+   * Handles user login flow.
+   * Initiates OAuth flow by calling login API, stores request token,
+   * and redirects to authentication provider.
+   */
   const handleLogin = async () => {
     try {
       const data = await login();
@@ -43,11 +89,19 @@ export default function Header() {
     }
   };
 
+  /**
+   * Handles user logout.
+   * Calls logout API and redirects to home page.
+   */
   const handleLogout = async () => {
     await logout();
     window.location.href = "/";
   };
 
+  /**
+   * Handles Recording Studio button click.
+   * Shows login modal if user is not authenticated, otherwise navigates to contribute page.
+   */
   const handleRecordingStudioClick = () => {
     if (!token) {
       setIsLoginModalOpen(true);

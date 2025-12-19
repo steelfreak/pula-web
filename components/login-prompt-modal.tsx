@@ -13,11 +13,26 @@ import { LogIn } from "lucide-react";
 import { useApiWithStore } from "@/hooks/useApiWithStore";
 import { useAuthStore } from "@/lib/stores/authStore";
 
+/**
+ * Props for the LoginPromptModal component.
+ * @interface LoginPromptModalProps
+ * @property {boolean} open - Controls the visibility state of the modal dialog.
+ * @property {(open: boolean) => void} onOpenChange - Callback function triggered when the dialog open state changes.
+ */
 interface LoginPromptModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
+/**
+ * LoginPromptModal is a controlled modal dialog that prompts users to log in with their Wikimedia account
+ * to access the Recording Studio. It handles the login flow by calling the authentication API and redirecting
+ * to Wikimedia's OAuth flow upon successful login initiation.
+ * 
+ * @component
+ * @param {LoginPromptModalProps} props - Component props.
+ * @returns {JSX.Element} The rendered modal dialog with login prompt and action buttons.
+ */
 export default function LoginPromptModal({
   open,
   onOpenChange,

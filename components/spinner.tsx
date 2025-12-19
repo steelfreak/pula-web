@@ -2,6 +2,31 @@
 
 import { Loader2 } from "lucide-react";
 
+/**
+ * A conditional spinner component that displays loading content and/or a spinning icon.
+ * Useful for buttons, forms, or any UI element that needs loading states.
+ *
+ * @example
+ * ```
+ * // Just spinner
+ * <Spinner loading={true} />
+ *
+ * // With text content
+ * <Spinner loading={true} content="Saving..." />
+ *
+ * // With custom styling
+ * <Spinner 
+ *   loading={true} 
+ *   content="Loading..." 
+ *   extraClass="text-blue-500" 
+ * />
+ * ```
+ *
+ * @param {boolean} loading - Controls visibility of the spinner icon
+ * @param {string} [content] - Optional text content displayed alongside spinner
+ * @param {string} [extraClass] - Optional Tailwind CSS classes for additional spinner styling
+ * @returns {JSX.Element} Spinner with conditional content and loading icon
+ */
 export default function Spinner({
   loading,
   content,
@@ -11,7 +36,7 @@ export default function Spinner({
   content?: string;
   extraClass?: string;
 }) {
-
+  
   return (
     <>
       {content && <span>{content}</span>}

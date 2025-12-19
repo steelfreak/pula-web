@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -9,8 +8,14 @@ import { useToast } from "@/components/ui/use-toast";
 import { useApiWithStore } from "@/hooks/useApiWithStore";
 import { Tooltip } from "@/components/ui/tooltip-info";
 
+/**
+ * SearchInterface component - Main search page for language translation exploration.
+ * Allows users to select source and target languages, then search for words/phrases.
+ * 
+ * @component
+ * @returns {JSX.Element} The search interface UI with language selectors and search input.
+ */
 export default function SearchInterface() {
-  // const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter();
   const { toast } = useToast();
   const {
@@ -28,21 +33,36 @@ export default function SearchInterface() {
     isSearchReady,
   } = useApiWithStore();
 
-  // const areLanguagesSelected =
-  //   selectedSourceLanguage && selectedTargetLanguage1;
-  // const areLanguagesSelected = true;
-
-  // Load languages when component mounts
+  /**
+   * Loads available languages when component mounts.
+   * 
+   * @effect
+   * @see useApiWithStore#getLanguages
+   */
   useEffect(() => {
     getLanguages();
   }, []);
 
+  /**
+   * Redirects to results page when a lexeme is clicked from search results.
+   * 
+   * @effect
+   * @param {Object|null} clickedLexeme - The clicked lexeme object from store.
+   * @see useRouter#push
+   */
   useEffect(() => {
     if (clickedLexeme) {
       router.push(`/results/${encodeURIComponent(clickedLexeme.id)}`);
     }
   }, [clickedLexeme]);
 
+  /**
+   * Handles search query submission.
+   * Shows toast error if required languages aren't selected.
+   * 
+   * @param {string} query - The search term entered by the user.
+   * @returns {void}
+   */
   const handleSearch = (query: string) => {
     if (!isSearchReady) {
       toast({
@@ -63,7 +83,6 @@ export default function SearchInterface() {
           Explore words and phrases in other languages
         </h1>
         <p className="max-w-2xl mx-auto" style={{ color: "#72777d" }}>
-          {/* Select your languages and search for a word! */}
           Select languages to proceed.
         </p>
       </div>
@@ -138,7 +157,6 @@ export default function SearchInterface() {
           onChange={(v) => null}
         />
       </div>
-
 
       {/* Instructions */}
       {!isSearchReady && (

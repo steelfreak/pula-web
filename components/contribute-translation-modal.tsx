@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * Modal component for contributing translations by searching existing lexemes or creating new ones.
+ * Users can search for matching lexemes in the target language and select a sense, or create a new translation.
+ */
 import {
   Dialog,
   DialogContent,
@@ -16,19 +20,30 @@ import {
   LexemeSearchResult,
   LexemeTranslation,
 } from "@/lib/types/api";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useApiWithStore } from "@/hooks/useApiWithStore";
 import { api } from "@/lib/api";
 import Spinner from "./spinner";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface ContributeModalProps {
+  /** Whether the modal is currently open */
   open: boolean;
+  /** Callback to control modal open/close state */
   onOpenChange: (open: boolean) => void;
+  /** Target language for the translation */
   language: Language | null;
+  /** Optional callback triggered on successful submission */
   onSuccess?: () => void;
+  /** Existing translations for the base lexeme */
   lexemeTranslations: LexemeTranslation[] | null;
 }
 
+/**
+ * ContributeTranslationModal component for adding new translations.
+ * Features debounced lexeme search, sense selection, and new translation creation.
+ */
 export default function ContributeTranslationModal({
   open,
   onOpenChange,
@@ -36,68 +51,145 @@ export default function ContributeTranslationModal({
   onSuccess,
   lexemeTranslations,
 }: ContributeModalProps) {
+  /**
+   * Current search query entered by the user
+   */
   const [query, setQuery] = useState("");
+  /**
+   * Array of lexeme search results
+   */
   const [lexemes, setLexemes] = useState<LexemeSearchResult[]>([]);
+  /**
+   * Flag indicating if user has selected an existing lexeme
+   */
   const [hasSelectedLexeme, setHasSelectedLexeme] = useState(false);
+  /**
+   * Currently selected sense ID from lexeme search results
+   */
   const [selectedSenseId, setSelectedSenseId] = useState<string | null>(null);
+  /**
+   * Submission loading state
+   */
   const [isSubmitting, setIsSubmitting] = useState(false);
+  /**
+   * Debounce timeout reference for search
+   */
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout>();
   const { selectedLexeme, addTranslation } = useApiWithStore();
+  /**
+   * Input element reference for focus management
+   */
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleSubmit = async () => {
-    // console.log("selectedLexeme", selectedLexeme);
-    // console.log("lexemeTranslations", lexemeTranslations);
-    // console.log("language", language);
-    const baseLexeme =
-      lexemeTranslations?.find((t) => t.trans_language === language?.lang_code)
-        ?.base_lexeme || "";
-    if (!selectedSenseId || !baseLexeme) {
-      alert("Please select a sense and a base lexeme");
+  /**
+   * Debounced lexeme search function. Searches for lexemes matching the query in the target language.
+   * @param searchQuery - The search term to look for
+   */
+  const searchLexemes = useCallback(async (searchQuery: string) => {
+    if (!language?.lang_code || searchQuery.length < 2) {
+      setLexemes([]);
       return;
     }
 
     try {
-      const request: AddTranslationRequest[] = [
-        {
-          base_lexeme: baseLexeme,
-          translation_sense_id: selectedSenseId,
-          translation_language: language?.lang_code || "",
-          value: query,
-          is_new: !hasSelectedLexeme,
-          categoryId: selectedLexeme?.lexeme?.lexicalCategoryId || "",
-        },
-      ];
-      console.log("request", request);
-      // return;
-      setIsSubmitting(true);
+      const request: LexemeSearchRequest = {
+        ismatch: 1,
+        search: searchQuery,
+        src_lang: language.lang_code,
+        with_sense: true,
+      };
+      const results = await api.searchLexemes(request);
+      setLexemes(results);
+    } catch (error) {
+      console.error("Error searching lexemes:", error);
+      setLexemes([]);
+    }
+  }, [language]);
+
+  /**
+   * Effect for debounced search. Triggers search after 300ms delay when query changes.
+   */
+  useEffect(() => {
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+
+    const timeout = setTimeout(() => {
+      searchLexemes(query);
+    }, 300);
+
+    setSearchTimeout(timeout);
+
+    return () => clearTimeout(timeout);
+  }, [query, searchLexemes, searchTimeout]);
+
+  /**
+   * Effect to reset state when modal closes and focus input when opens.
+   */
+  useEffect(() => {
+    if (!open) {
+      setQuery("");
+      setLexemes([]);
+      setHasSelectedLexeme(false);
+      setSelectedSenseId(null);
+    } else {
+      inputRef.current?.focus();
+    }
+  }, [open]);
+
+  /**
+   * Memoized base lexeme from existing translations for the current language.
+   */
+  const baseLexeme = useMemo(() => {
+    return lexemeTranslations?.find((t) => t.trans_language === language?.lang_code)?.base_lexeme || "";
+  }, [lexemeTranslations, language]);
+
+  /**
+   * Handler for selecting a lexeme from search results.
+   * @param lexeme - The lexeme to select
+   */
+  const handleLexemeSelect = useCallback((lexeme: LexemeSearchResult) => {
+    setQuery(lexeme.label);
+    setHasSelectedLexeme(true);
+    setSelectedSenseId(lexeme.sense_id || null);
+    setLexemes([]);
+  }, []);
+
+  /**
+   * Handler for form submission. Validates input and submits translation request.
+   */
+  const handleSubmit = async () => {
+    if (!selectedSenseId || !baseLexeme || !query.trim()) {
+      alert("Please select a sense and enter a valid translation");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const request: AddTranslationRequest[] = [{
+        base_lexeme,
+        translation_sense_id: selectedSenseId,
+        translation_language: language!.lang_code,
+        value: query.trim(),
+        is_new: !hasSelectedLexeme,
+        categoryId: selectedLexeme?.lexeme?.lexicalCategoryId || "",
+      }];
+
       await addTranslation(request);
       onSuccess?.();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error submitting label:", error);
+      console.error("Error submitting translation:", error);
+      alert("Failed to save translation. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getLexemes = async () => {
-    if (!language || !language.lang_code) {
-      return;
-    }
-
-    const request: LexemeSearchRequest = {
-      ismatch: 1,
-      search: query,
-      src_lang: language?.lang_code || "",
-      with_sense: true,
-    };
-    const results = await api.searchLexemes(request);
-    setLexemes(results);
-    setHasSelectedLexeme(false);
-  };
-
-  useEffect(() => {
-    getLexemes();
-  }, [query]);
+  /**
+   * Computed value determining if submit button should be enabled.
+   */
+  const canSubmit = !isSubmitting && !!query.trim() && !!selectedSenseId && !!baseLexeme;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -109,75 +201,52 @@ export default function ContributeTranslationModal({
           </DialogTitle>
           <DialogDescription>
             Add a translation to help improve our translations for{" "}
-            {language ? language.lang_label : "the language"}.
+            {language?.lang_label || "the language"}.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          <div className="flex justify-center items-center space-x-4">
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search for existing lexemes"
-              className="w-full pl-10 pr-10 py-3 rounded-lg text-lg focus:outline-none transition-colors"
-              style={{
-                border: `1px solid #a2a9b1`,
-                backgroundColor: "#ffffff",
-                color: "#222222",
-                cursor: "text",
-              }}
-              onFocusCapture={(e) =>
-                (e.currentTarget.style.borderColor = "#0645ad")
-              }
-              onBlur={(e) => (e.currentTarget.style.borderColor = "#a2a9b1")}
-            />
-          </div>
+        <div className="space-y-4">
+          <Input
+            ref={inputRef}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search for existing lexemes or enter new translation"
+            className="w-full h-12 text-lg"
+            disabled={isSubmitting}
+          />
 
           {lexemes.length > 0 && !hasSelectedLexeme && (
-            <div
-              className="w-full bg-white rounded-lg shadow-lg overflow-auto"
-              style={{
-                border: `1px solid #a2a9b1`,
-                maxHeight: "160px",
-              }}
-            >
+            <div className="w-full bg-background border rounded-lg shadow-sm max-h-40 overflow-auto">
               {lexemes.map((lexeme) => (
                 <button
                   key={lexeme.id}
                   type="button"
-                  onClick={() => {
-                    setQuery(lexeme.label);
-                    setHasSelectedLexeme(true);
-                    setSelectedSenseId(lexeme.sense_id || null);
-                  }}
-                  className="w-full text-left px-4 py-3 text-sm focus:outline-none flex items-center space-x-3 transition-colors"
-                  style={{
-                    color: "#222222",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#f8f9fa")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor = "transparent")
-                  }
+                  onClick={() => handleLexemeSelect(lexeme)}
+                  className={cn(
+                    "w-full text-left px-4 py-3 text-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:bg-accent focus:ring-2 focus:ring-ring focus:ring-offset-1 flex items-center space-x-3 transition-colors",
+                  )}
+                  aria-label={`Select lexeme: ${lexeme.label}`}
                 >
-                  <div className="flex-1">
-                    <div className="font-medium">{lexeme.label}</div>
-                    <div className="text-xs" style={{ color: "#72777d" }}>
-                      {lexeme.description}
-                    </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">{lexeme.label}</div>
+                    {lexeme.description && (
+                      <div className="text-xs text-muted-foreground line-clamp-2">
+                        {lexeme.description}
+                      </div>
+                    )}
                   </div>
                 </button>
               ))}
             </div>
           )}
 
-          {lexemes.length === 0 && query && (
-            <div className="text-red-500 text-sm">Lexeme does not exist</div>
+          {query && lexemes.length === 0 && !hasSelectedLexeme && (
+            <div className="text-destructive text-sm text-center py-2">
+              No matching lexemes found. You can create a new one.
+            </div>
           )}
 
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-end space-x-2 pt-2">
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
@@ -185,13 +254,20 @@ export default function ContributeTranslationModal({
             >
               Cancel
             </Button>
-            <Button onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting
-                ? "Saving..."
-                : hasSelectedLexeme
-                ? "Save existing translation"
-                : "Save new translation"}
-              <Spinner loading={isSubmitting} />
+            <Button
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+            >
+              {isSubmitting ? (
+                <>
+                  <Spinner loading size="sm" />
+                  Saving...
+                </>
+              ) : hasSelectedLexeme ? (
+                "Save existing translation"
+              ) : (
+                "Save new translation"
+              )}
             </Button>
           </div>
         </div>

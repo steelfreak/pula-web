@@ -1,7 +1,5 @@
 "use client";
 
-
-
 import {
   GlossWithSense,
   LexemeDetail,
@@ -14,6 +12,15 @@ import { useAuthStore } from "@/lib/stores/authStore";
 import { useEffect, useState } from "react";
 import { Tooltip } from "@/components/ui/tooltip-info";
 
+/**
+ * Props for the LexemeDetailResultComponent.
+ * @interface LexemeDetailResultProps
+ * @property {string} [title] - Optional title for the component.
+ * @property {GlossWithSense[]} [glossesWithSense] - Array of glosses with sense data.
+ * @property {LexemeDetail} [lexemeDetail] - Detailed information about the lexeme.
+ * @property {LexemeTranslation | null} [translation] - Translation data for the lexeme.
+ * @property {(type: "description" | "audio" | "translation") => void} [onContribute] - Optional callback for contribution actions.
+ */
 interface LexemeDetailResultProps {
   title?: string;
   glossesWithSense?: GlossWithSense[];
@@ -22,6 +29,24 @@ interface LexemeDetailResultProps {
   onContribute?: (type: "description" | "audio" | "translation") => void;
 }
 
+/**
+ * A React component that displays detailed information about a lexeme including images, 
+ * lexical category, translations, descriptions/glosses, and audio pronunciation.
+ * Handles authentication state and provides contribution buttons for missing data.
+ * 
+ * @component
+ * @param {LexemeDetailResultProps} props - Component props.
+ * @returns {JSX.Element} The rendered LexemeDetailResult component.
+ * @example
+ * ```
+ * <LexemeDetailResultComponent
+ *   lexemeDetail={lexemeData}
+ *   glossesWithSense={glosses}
+ *   translation={translationData}
+ *   onContribute={handleContribute}
+ * />
+ * ```
+ */
 export default function LexemeDetailResultComponent({
   title,
   glossesWithSense,
@@ -29,16 +54,32 @@ export default function LexemeDetailResultComponent({
   translation,
   onContribute,
 }: LexemeDetailResultProps) {
+  /** 
+   * State to control menu visibility (currently unused in render).
+   * @type {boolean}
+   */
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  /** API utilities with store integration */
   const { login, logout } = useApiWithStore();
 
+  /** Authentication token from auth store */
   const token = useAuthStore((state) => state.token);
+  /** Hydration function from auth store */
   const hydrate = useAuthStore((state) => state.hydrate);
 
+  /**
+   * Initial hydration effect on component mount.
+   * Ensures auth state is properly initialized.
+   */
   useEffect(() => {
     hydrate();
   }, [hydrate]);
 
+  /**
+   * Re-hydrates authentication state when token changes.
+   * Ensures store stays in sync with token updates.
+   */
   useEffect(() => {
     // Re-hydrate when token changes
     if (token) {

@@ -4,10 +4,18 @@ import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useOnboardingStore } from "@/lib/stores/onboardingStore";
 
+/**
+ * Interface defining a single tour step configuration
+ * @interface
+ */
 interface TourStep {
+  /** CSS selector targeting the element to highlight (or "body") */
   target: string;
+  /** Title displayed in tooltip header */
   title: string;
+  /** Main descriptive content of the step */
   content: string;
+  /** Tooltip position relative to target element */
   placement?: "top" | "bottom" | "left" | "right";
 }
 
@@ -56,6 +64,17 @@ const tourSteps: TourStep[] = [
   },
 ];
 
+/**
+ * Onboarding tour component
+ * @component
+ * @param {Object} props - Component props
+ * @param {boolean} props.isOnboardingVisible - Controls tour visibility from store
+ * @param {boolean} props.isOnboardingCompleted - Tracks if user completed tour
+ * @param {Function} props.setOnboardingCompleted - Marks tour as completed
+ * @param {Function} props.setOnboardingVisible - Toggles tour visibility
+ * @param {Function} props.hydrate - Initializes store state
+ * @returns {JSX.Element|null} Tour UI or null if hidden/completed
+ */
 export default function Onboarding() {
   const { isOnboardingVisible, isOnboardingCompleted, setOnboardingCompleted, setOnboardingVisible, hydrate } =
     useOnboardingStore();
