@@ -7,13 +7,17 @@ import { TooltipProvider } from "@/components/tooltip-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
+
   title: "PULA - People's Universal Lexical Access",
+
   description: "Easy translation from any base language to any target language",
   authors: [{ name: "PULA", url: "https://github.com/agpb" }],
   keywords: ["translation", "language", "phrase book", "German", "African"],
   robots: "index, follow",
   openGraph: {
+
     title: "PULA - People's Universal Lexical Access",
+
     description: "Easy translation from any base language to any target language",
   }
 }

@@ -97,12 +97,15 @@ export default function Header() {
           {/* User Menu */}
           <div className="flex items-center space-x-4">
             <a
-              className="hidden text-sm font-medium transition-colors hover:underline md:flex items-center gap-2"
-              href="/faq"
+
+              href="/contribute"
+              className="text-sm font-medium transition-colors hover:underline flex items-center gap-2"
+
               style={{ color: "#0645ad" }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "#0b0080")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "#0645ad")}
             >
+
               FAQ
             </a>
             <a
@@ -113,6 +116,8 @@ export default function Header() {
               onMouseLeave={(e) => (e.currentTarget.style.color = "#0645ad")}
             >
               <Mic size="1em" className="max-sm:hidden" /> Record Studio
+
+
             </a>
             {username ? (
               <div className="flex items-center space-x-2">
