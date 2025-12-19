@@ -1,41 +1,68 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
+    // Target modern browsers with better performance (updated from outdated ES2017)
+    "target": "ES2022",
+    
+    // Standard libs for DOM, modern JS, and React/Next.js
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
+    
+    // Allow importing .js/.jsx files (common in mixed TS/JS projects)
     "allowJs": true,
+    
+    // Skip type checking of declaration files (speeds up compilation)
     "skipLibCheck": true,
+    
+    // Enable all strict type-checking (best practice for type safety)
     "strict": true,
+    
+    // Don't emit JS output (Next.js handles compilation)
     "noEmit": true,
+    
+    // Enable ES module interop for better CommonJS/ESM compatibility
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    
+    // Modern module system for bundlers like webpack/vite
     "module": "esnext",
     "moduleResolution": "bundler",
+    
+    // Allow importing .json files
     "resolveJsonModule": true,
+    
+    // Ensure each file is transformed (required for Babel/Next.js)
     "isolatedModules": true,
+    
+    // Preserve JSX for Next.js (don't transform to JS)
     "jsx": "preserve",
+    
+    // Enable incremental compilation for faster rebuilds
     "incremental": true,
+    
+    // Next.js TypeScript plugin for better IDE support
     "plugins": [
-      {
-        "name": "next"
-      }
+      { "name": "next" }
     ],
+    
+    // Path mappings (adjust if using src/ folder: "./src/*")
+    "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     }
   },
+  
+  // Source files to include (removed duplicate .next/types entry, dropped webpack.config.js)
   "include": [
+    "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
-    "next-env.d.ts",
-    "webpack.config.js",
-    "./.next/types/**/*.ts"
+    ".next/types/**/*.ts"
   ],
+  
+  // Folders to exclude from compilation
   "exclude": [
     "node_modules"
   ]
